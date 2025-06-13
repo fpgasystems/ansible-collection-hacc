@@ -1,0 +1,6 @@
+---
+
+amd_apm_release: "2024.2"
+
+amd_apm_install_path: /opt/xilinx
+amd_apm_download_path: /opt/xilinx/downloads

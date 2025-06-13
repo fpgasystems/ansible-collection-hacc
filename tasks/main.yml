@@ -1,0 +1,22 @@
+---
+
+# 1) Check if components are installed of other version than specified by variable.
+#   - if other version installed, then remove and clean up
+- name: Check if base install directory exists
+  file:
+    path: "{{ amd_apm_base_path }}"
+    state: directory
+
+#
+# 2) Install XRT
+- include_tasks: ./xrt.yml
+
+# 3) Install Vitis core
+- include_tasks: ./vitis-core.yml
+
+
+# 4) Install deployement targets
+#
+# 5) Install development targets
+#
+# 6) Install Vitis AI (optional)
