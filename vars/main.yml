@@ -10,15 +10,30 @@ amd_apm_packages:
           checksum: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
         vitis_core:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141 # update 2
-          checksum: sha256:8cbba41af8bd407d05d4b1e3c7227767553961b6c98f1cde144feb3d961e40e3 #update 2
-          #package: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001 # initial release
-          #checksum: sha256:974f92f749bd15e38c45d8707c45b39ef903819310dc196bcaafb66eb16c8f3c # initial release
+          #package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141 # update 2
+          #checksum: sha256:8cbba41af8bd407d05d4b1e3c7227767553961b6c98f1cde144feb3d961e40e3 #update 2
+          package: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001 # initial release
+          checksum: sha256:974f92f749bd15e38c45d8707c45b39ef903819310dc196bcaafb66eb16c8f3c # initial release
+        u50d:
+          deployment:
+            url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+            archive: xilinx-u50-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz
+            package:
+              - xilinx-cmc-u50_1.0.40-3398385_all.deb
+              - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
+              - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
+              - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
           
       '2024.1':
         xrt:
           url: https://www.amd.com/bin/public/amdOpenDownload?filename=
           package: xrt_202410.2.17.319_22.04-amd64-xrt.deb
+        vitis_core:
+          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+          #package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141 # update 2
+          #checksum: sha256:8cbba41af8bd407d05d4b1e3c7227767553961b6c98f1cde144feb3d961e40e3 #update 2
+          package: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001 # initial release
+          checksum: sha256:974f92f749bd15e38c45d8707c45b39ef903819310dc196bcaafb66eb16c8f3c # initial release
 
       '2023.2':
         xrt:

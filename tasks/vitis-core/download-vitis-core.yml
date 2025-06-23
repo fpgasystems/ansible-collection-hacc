@@ -1,0 +1,27 @@
+---
+
+- name: Ensure Vitis download directory exists
+  ansible.builtin.file:
+    path: "{{ amd_apm_vitis_core_download_path }}"
+    state: directory
+
+- name: Ensure Vitis archive extraction directory exists
+  ansible.builtin.file:
+    path: "{{ amd_apm_vitis_core_download_path }}/{{ amd_apm_vitis_core_package }}"
+    state: directory
+
+#TODO: download protected behind amd sign in and html form, need to handle this programmatically
+- name: Download Vitis core package (100+ GB file, may take a while...)
+  ansible.builtin.get_url:
+    url: "{{ amd_apm_vitis_core_download_url }}{{ amd_apm_vitis_core_archive }}"
+    dest: "{{ amd_apm_vitis_core_download_path }}"
+    checksum: "{{ amd_apm_vitis_core_checksum }}"
+
+#NOTE: this is slow (extraction and diff). Consider unpacking locally and sending to remote? Or unpacking on fast storage
+- name: Extract Vitis core archive (100+ GB file, may take a while...)
+  unarchive:
+    src: "{{ amd_apm_vitis_core_download_path }}/{{ amd_apm_vitis_core_archive }}"
+    dest: "{{ amd_apm_vitis_core_download_path }}/{{ amd_apm_vitis_core_package }}"
+    remote_src: yes
+    extra_opts: "--no-same-owner"
+
