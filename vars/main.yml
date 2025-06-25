@@ -28,11 +28,11 @@ amd_apm_packages:
         xrt:
           url: https://www.amd.com/bin/public/amdOpenDownload?filename=
           package: xrt_202410.2.17.319_22.04-amd64-xrt.deb
-        vitis_core:
+        vitis_core: # test data
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           #package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141 # update 2
           #checksum: sha256:8cbba41af8bd407d05d4b1e3c7227767553961b6c98f1cde144feb3d961e40e3 #update 2
-          package: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001 # initial release
+          package: FPGAs_AdaptiveSoCs_Unified_2024.1_1113_1001 # initial release
           checksum: sha256:974f92f749bd15e38c45d8707c45b39ef903819310dc196bcaafb66eb16c8f3c # initial release
 
       '2023.2':
@@ -44,6 +44,12 @@ amd_apm_packages:
         xrt:
           url: https://www.amd.com/bin/public/amdOpenDownload?filename=
           package: xrt_202310.2.15.225_20.04-amd64-xrt.deb
+        vitis_core: #test data
+          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+          #package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141 # update 2
+          #checksum: sha256:8cbba41af8bd407d05d4b1e3c7227767553961b6c98f1cde144feb3d961e40e3 #update 2
+          package: FPGAs_AdaptiveSoCs_Unified_2023.1_1113_1001 # initial release
+          checksum: sha256:974f92f749bd15e38c45d8707c45b39ef903819310dc196bcaafb66eb16c8f3c # initial release
 
       '2022.2':
         xrt:

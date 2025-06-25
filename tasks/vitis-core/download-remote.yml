@@ -1,0 +1,41 @@
+---
+
+- name: "[Download {{ amd_apm_release }}] Set Vitis Core facts"
+  ansible.builtin.set_fact:
+    amd_apm_vitis_core_download_url: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['url'] }}"
+    amd_apm_vitis_core_package: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['package'] }}"
+    amd_apm_vitis_core_archive: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['package'] }}.tar"
+    amd_apm_vitis_core_checksum: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['checksum'] }}"
+    amd_apm_vitis_core_download_path: "{{ amd_apm_download_path }}/vitis-core"
+
+- name: "[Download {{ amd_apm_release }}] Ensure Vitis download directory exists"
+  ansible.builtin.file:
+    path: "{{ amd_apm_vitis_core_download_path }}"
+    state: directory
+
+#TODO: check if .tar already exists
+#   use in when for get_url
+
+#TODO: check if extracted folder exists
+#   use in when for unarchive
+
+#TODO: download protected behind amd sign in and html form, need to handle this programmatically
+- name: "[Download {{ amd_apm_release }}] Download Vitis core package (100+ GB file, may take a while...)"
+  ansible.builtin.get_url:
+    url: "{{ amd_apm_vitis_core_download_url }}{{ amd_apm_vitis_core_archive }}"
+    dest: "{{ amd_apm_vitis_core_download_path }}"
+    checksum: "{{ amd_apm_vitis_core_checksum }}"
+
+- name: "[Download {{ amd_apm_release }}] Ensure Vitis archive extraction directory exists"
+  ansible.builtin.file:
+    path: "{{ amd_apm_vitis_core_download_path }}/{{ amd_apm_vitis_core_package }}"
+    state: directory
+
+#NOTE: this is slow (extraction and diff). Consider unpacking locally and sending to remote? Or unpacking on fast storage
+- name: "[Download {{ amd_apm_release }}] Extract Vitis core archive (100+ GB file, may take a while...)"
+  unarchive:
+    src: "{{ amd_apm_vitis_core_download_path }}/{{ amd_apm_vitis_core_archive }}"
+    dest: "{{ amd_apm_vitis_core_download_path }}/{{ amd_apm_vitis_core_package }}"
+    remote_src: yes
+    extra_opts: "--no-same-owner"
+

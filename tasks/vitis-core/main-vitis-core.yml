@@ -1,76 +1,74 @@
 ---
 
-- name: Set Vitis Core facts
-  ansible.builtin.set_fact:
-    amd_apm_vitis_core_download_url: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['url'] }}"
-    amd_apm_vitis_core_package: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['package'] }}"
-    amd_apm_vitis_core_archive: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['package'] }}.tar"
-    amd_apm_vitis_core_checksum: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['checksum'] }}"
-    amd_apm_vitis_core_download_path: "{{ amd_apm_download_path }}/vitis-core"
-    amd_apm_vitis_core_install_path: "{{ amd_apm_install_path }}" # in this path Vitis, Vitis_HLS and Vivado folders are created by the xsetup tool
-
 # CHECK
+# loop over all versions that need to be installed:
+# options:
+#   - amd_apm_release: 2020.1? - 2025.1
+#   - tools: vitis and/or vivado
 
-# use bash -ilc "command" to load environment variables
-- name:
+    #- "Vitis"
+    #- "Vitis_HLS"
+    #- "Vivado"
+    #- "Model_Composer"
+- name: Vitis pre install check
   stat:
-    path: "{{ amd_apm_vitis_core_install_path }}/{{ item }}/{{ amd_apm_release }}"
-  with_items:
-    - "Vitis"
-    - "Vitis_HLS"
-    - "Vivado"
-    - "Model_Composer"
-  register: amd_apm_vitis_core_pre_install_version_check
+    path: "{{ amd_apm_vitis_core_install_path }}/Vitis/{{ release }}"
+  with_list: "{{ amd_apm_releases }}"
+  register: amd_apm_vitis_core_pre_install_vitis_check
+  loop_control:
+    loop_var: release
 
-- name: Set installed version facts
-  ansible.builtin.set_fact:
-    amd_apm_vitis_core_vitis_already_installed: "{{ amd_apm_vitis_pre_install_version_check }}"
+- name: Vivado pre install check
+  stat:
+    path: "{{ amd_apm_vitis_core_install_path }}/Vivado/{{ release }}"
+  with_list: "{{ amd_apm_releases }}"
+  register: amd_apm_vitis_core_pre_install_vivado_check
+  loop_control:
+    loop_var: release
 
-- fail:
-    msg: "{{ amd_apm_vitis_core_pre_install_version_check }}"
+# REMOVE
 
-#- name: Check wheter the vivado command is already recognized
-#  shell: bash -ilc "vivado -version"
-#  register: vitis_core_check_vivado_installed
-#  ignore_errors: True
-#  changed_when: False
-#
-#- name: Set Vivado installation status variable
-#  set_fact:
-#    vivado_already_installed: "{{ vitis_core_check_vivado_installed.rc == 0 }}"
-#
-#- name: If vivado is already present, check its version
-#  shell: bash -ilc "vivado -version | sed -n 's/.*v\([0-9]\+\.[0-9]\+\).*/\1/p'"
-#  register: vitis_core_check_vivado_version
-#  ignore_errors: True
-#  changed_when: False
-#  when: vivado_already_installed
-#
-#- name: Set Vivado version status variable
-#  set_fact:
-#    vivado_check_version: "{{ vitis_core_check_vivado_version.stdout_lines | list | last }}"
-#  when: vivado_already_installed
-#
-## REMOVE
-#
-#- name: Remove other Vitis/Vivado releases
-#  include_tasks: ./uninstall-vitis-core.yml
-#  when: amd_apm_vitis_core_remove_other_releases
-#
-#- block:
-#  when: #TODO: figure out the logic when to run download and install
-#
-#  - name: Assert that there is enough space (>300 GB) on disk ('/') for full Vitis installation
-#    assert:
-#      that: ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int is gt 300000000000
-#      fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit (300Gb requested). Consider making space on drive or only installing vivado by adding `amd_apm_vitis_core_install_vivado_only: true` to the variables of your playbook"
-#    when: not amd_apm_vitis_core_install_vivado_only
-#
-#  # DOWNLOAD
-#  # TODO: create two task files (one for local download and extraction and copy to remote, and one for all on remote) Test if local is in fact really faster
-#  - include_tasks: ./download-vitis-core.yml
-#    when: not amd_apm_vitis_core_skip_download
-#  
-#  
-#  # INSTALL
-#  - include_tasks: ./install-vitis-core.yml
+- name: Remove other Vitis/Vivado releases
+  include_tasks: ./uninstall-vitis-core.yml
+  when: amd_apm_vitis_core_remove_other_releases
+
+
+#TODO: check if 300GB is correct or too conservative
+- name: "Assert that there is enough space (300 GB per release: so >{{ 300*amd_apm_releases|length }}GB for {{amd_apm_releases|length}} release(s)) on disk for full Vitis installation"
+  assert:
+    that: ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int is gt (amd_apm_releases|length * 300000000000)
+    fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit (300Gb requested). Consider making space on drive or only installing vivado by setting `amd_apm_vitis_core_install_vitis: false` to the variables of your playbook"
+  when: amd_apm_vitis_core_install_vitis
+
+
+# DOWNLOAD
+# runs when:
+#   - vivado release directory does not exist
+#   or
+#   - vitis should be installed and the specific vitis release directory does not exist
+- name: Download AMD Toolchain
+  include_tasks:
+    file: "./download-{% if amd_apm_download_locally %}local{% else %}remote{% endif %}.yml"
+  with_list: "{{ amd_apm_vitis_core_pre_install_vivado_check.results }}"
+  vars:
+    amd_apm_release: "{{ item.release }}"
+  when: >
+      item.stat.exists == false or
+      amd_apm_vitis_core_install_vitis and
+      not amd_apm_vitis_core_pre_install_vitis_check.results | list | selectattr('release', 'equalto', item.release) | selectattr('stat.exists')
+
+
+# INSTALL
+# runs when:
+#   - vivado release directory does not exist
+#   or
+#   - vitis should be installed and the specific vitis release directory does not exist
+- name: Install AMD Toolchain
+  include_tasks: ./install-vitis-core.yml
+  with_list: "{{ amd_apm_vitis_core_pre_install_vivado_check.results }}"
+  vars:
+    amd_apm_release: "{{ item.release }}"
+#  when: >
+#      item.stat.exists == false or
+#      amd_apm_vitis_core_install_vitis and
+#      not amd_apm_vitis_core_pre_install_vitis_check.results | list | selectattr('release', 'equalto', item.release) | selectattr('stat.exists')
