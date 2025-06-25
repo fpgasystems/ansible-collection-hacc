@@ -2,8 +2,6 @@
 
 amd_apm_releases:
   - "2024.2"
-  - "2024.1"
-  - "2023.1"
 
 amd_apm_xrt_install_path: /opt/amd
 amd_apm_vitis_core_install_path: /tools/Xilinx

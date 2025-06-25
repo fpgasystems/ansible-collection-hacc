@@ -34,7 +34,8 @@
 
 
 #TODO: check if 300GB is correct or too conservative
-- name: "Assert that there is enough space (300 GB per release: so >{{ 300*amd_apm_releases|length }}GB for {{amd_apm_releases|length}} release(s)) on disk for full Vitis installation"
+#TODO: correct for already installed versions
+- name: "Assert that there is enough space (300 GB per release: so >{{ 300*amd_apm_releases|length }}GB for {{amd_apm_releases|length}} release(s)) on disk for tools installation"
   assert:
     that: ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int is gt (amd_apm_releases|length * 300000000000)
     fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit (300Gb requested). Consider making space on drive or only installing vivado by setting `amd_apm_vitis_core_install_vitis: false` to the variables of your playbook"
@@ -68,7 +69,7 @@
   with_list: "{{ amd_apm_vitis_core_pre_install_vivado_check.results }}"
   vars:
     amd_apm_release: "{{ item.release }}"
-#  when: >
-#      item.stat.exists == false or
-#      amd_apm_vitis_core_install_vitis and
-#      not amd_apm_vitis_core_pre_install_vitis_check.results | list | selectattr('release', 'equalto', item.release) | selectattr('stat.exists')
+  when: >
+      item.stat.exists == false or
+      amd_apm_vitis_core_install_vitis and
+      not amd_apm_vitis_core_pre_install_vitis_check.results | list | selectattr('release', 'equalto', item.release) | selectattr('stat.exists')
