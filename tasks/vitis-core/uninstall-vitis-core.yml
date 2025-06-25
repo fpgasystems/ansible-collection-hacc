@@ -4,20 +4,19 @@
   find:
     paths: "{{ amd_apm_vitis_core_install_path }}"
     file_type: directory
-    excludes: 
-      - "{{ amd_apm_release }}"
+    excludes: "{{ amd_apm_releases }}"
   register: vitis_core_release_directories_to_delete
 
 - name: Delete older release directories
   file:
     path: "{{ item.path }}"
     state: absent
-  with_items: "{{ vitis_core_release_directories_to_delete['files'] }}"
+  with_list: "{{ vitis_core_release_directories_to_delete['files'] }}"
 
 - name: Remove any source scripts from general bashrc that are not of specified release
   lineinfile:
     path: /etc/bash.bashrc
-    regexp: '^source\s+{{ amd_apm_vitis_core_install_path }}/{{ item }}/(?!{{ amd_apm_release }})[^/]+/settings64\.sh'
+    regexp: '^source\s+{{ amd_apm_vitis_core_install_path }}/{{ item }}/(?!({{ amd_apm_releases | join("|") }}))[^/]+/settings64\.sh'
     state: absent
   loop:
     - "Vivado"
