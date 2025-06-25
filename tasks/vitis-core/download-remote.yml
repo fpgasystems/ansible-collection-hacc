@@ -6,8 +6,6 @@
     amd_apm_vitis_core_package: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['package'] }}"
     amd_apm_vitis_core_archive: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['package'] }}.tar"
     amd_apm_vitis_core_checksum: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['vitis_core']['checksum'] }}"
-    amd_apm_vitis_core_download_path: "{{ amd_apm_download_path }}/vitis-core"
-    amd_apm_vitis_core_extraction_path: "{{ amd_apm_vitis_core_download_path }}/{{ amd_apm_vitis_core_package }}"
 
 - name: "[Download {{ amd_apm_release }}] Check if the tools archive has already been downloaded"
   stat:

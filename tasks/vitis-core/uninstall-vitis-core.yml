@@ -13,22 +13,48 @@
     state: absent
   with_list: "{{ vitis_core_release_directories_to_delete['files'] }}"
 
-- name: Remove any source scripts from general bashrc that are not of specified release
-  lineinfile:
-    path: /etc/bash.bashrc
-    regexp: '^source\s+{{ amd_apm_vitis_core_install_path }}/{{ item }}/(?!({{ amd_apm_releases | join("|") }}))[^/]+/settings64\.sh'
-    state: absent
-  loop:
-    - "Vivado"
-    - "Vitis_HLS"
-    - 'Vitis'
-    - "Model_Composer"
+- name: "Remove all AMD tool related settings from bash that are not of {{ amd_apm_releases | first }} release"
+  when:
+    - amd_apm_releases | length == 1
+    - amd_apm_vitis_core_set_bash_environment_variables
+  block:
+    - name: "Remove any source scripts from general bashrc that are not of {{ amd_apm_releases | first }} release"
+      lineinfile:
+        path: /etc/bash.bashrc
+        regexp: '^source\s+{{ amd_apm_vitis_core_install_path }}/{{ item }}/(?!({{ amd_apm_releases | first }}))[^/]+/settings64\.sh'
+        state: absent
+      loop:
+        - "Vivado"
+        - "Vitis_HLS"
+        - 'Vitis'
+        - "Model_Composer"
 
-- name: Remove any Vitis Model Composer from system-wide PATH that are note of specified release
-  lineinfile:
-    path: /etc/bash.bashrc
-    regexp: '^export\s+PATH={{ amd_apm_vitis_core_install_path }}/Model_Composer/(?!{{ amd_apm_release }})[^/]+/bin:\$PATH'
-    state: absent
+    - name: "Remove any Vitis Model Composer from system-wide PATH that are note of {{ amd_apm_releases | first }} release"
+      lineinfile:
+        path: /etc/bash.bashrc
+        regexp: '^export\s+PATH={{ amd_apm_vitis_core_install_path }}/Model_Composer/(?!({{ amd_apm_releases | first }}))[^/]+/bin:\$PATH'
+        state: absent
+
+- name: Remove all AMD tool related settings from bash
+  when:
+    - (amd_apm_releases | length gt 1) or not amd_apm_vitis_core_set_bash_environment_variables
+  block:
+    - name: Remove all source scripts from general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        regexp: '^source\s+{{ amd_apm_vitis_core_install_path }}/{{ item }}/[^/]+/settings64\.sh'
+        state: absent
+      loop:
+        - "Vivado"
+        - "Vitis_HLS"
+        - 'Vitis'
+        - "Model_Composer"
+
+    - name: Remove all Vitis Model Composer from system-wide PATH
+      lineinfile:
+        path: /etc/bash.bashrc
+        regexp: '^export\s+PATH={{ amd_apm_vitis_core_install_path }}/Model_Composer/[^/]+/bin:\$PATH'
+        state: absent
 
 #- name: Gather Facts about Vitis directory
 #  stat:

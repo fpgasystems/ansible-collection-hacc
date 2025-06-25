@@ -6,60 +6,76 @@
     state: directory
 
 - name: Ensure /root/.Xilinx directory exists
-  file:
+  ansible.builtin.file:
     path: /root/.Xilinx
     state: directory
 
+#TODO: investigate if installation can be done by just using the --edition flag
+# https://docs.amd.com/r/en-US/ug973-vivado-release-notes-install-license/Batch-Mode-Installation-Flow
+
 # full Vitis install
-- template:
+- name:
+  template:
     src: files/install_config_vitis.txt.j2
-    dest: /root/.Xilinx/install_config_vitis.txt
+    dest: /root/.Xilinx/install_config.txt
     mode: 0644
-  when: root_freespace.stdout|float is gt 300000000 #if we have more than 300 Gb we will install Vitis Core Development Kit (template install_config_vitis.txt.j2)
-  #register: vitis_install #install_config = "vitis"
+  when: amd_apm_vitis_core_install_vitis
 
 # Vivado only install
-- template:
+- name:
+  template:
     src: files/install_config_vivado.txt.j2 
-    dest: /root/.Xilinx/install_config_vitis.txt
+    dest: /root/.Xilinx/install_config.txt
     mode: 0644
-  when: root_freespace.stdout|float is lt 300000000 #if we have less than 300 Gb we will install only Vivado (template install_config_vivado.txt.j2)
-  #register: vivado_install #install_config = "vivado"
+  when: not amd_apm_vitis_core_install_vitis
 
 #TODO: takes a lot of time: see if it can be shortend
 - name: Install Vitis core
-  shell: "./xsetup --agree XilinxEULA,3rdPartyEULA --batch Install --config /root/.Xilinx/install_config_vitis.txt"
+  shell: "./xsetup --agree XilinxEULA,3rdPartyEULA --batch Install --config /root/.Xilinx/install_config.txt"
   args:
-    chdir: "{{ amd_apm_vitis_core_install_path }}/{{ xilinx_vitis_core_extraxction_folder_name }}" 
+    chdir: "{{ amd_apm_vitis_core_extraction_path }}"
   async: 6000
   poll: 20
   when: false
 
-#Vivado is always installed
-#Vitis_HLS also comes with Vivado
-- name: Add Vivado source scripts to general bashrc
-  lineinfile:
-    path: /etc/bash.bashrc
-    insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
-    line: "source {{ amd_apm_vitis_core_install_path }}/{{ item }}/{{ amd_apm_release }}/settings64.sh"
-  loop:
-    - "Vivado"
-    - "Vitis_HLS"
 
-# Vitis is only installed, when vivado_only == false
-# Model Composer comes with Vitis
-- name: Add Vitis source scripts to general bashrc
-  lineinfile:
-    path: /etc/bash.bashrc
-    insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
-    line: "source {{ amd_apm_vitis_core_install_path }}/{{ item }}/{{ amd_apm_release }}/settings64.sh"
-    state: "{{ 'absent' if amd_apm_vitis_core_install_vivado_only|bool else 'present' }}"
-  loop:
-    - "Vitis"
-    - "Model_Composer"
+- name: "[Install {{ amd_apm_release }}] Set bash environment"
+  when:
+    - amd_apm_releases | length == 1
+    - amd_apm_vitis_core_set_bash_environment_variables
+  block:
+    #Vivado is always installed
+    #Vitis_HLS also comes with Vivado
+    - name: Add Vivado source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_apm_vitis_core_install_path }}/{{ item }}/{{ amd_apm_release }}/settings64.sh"
+      loop:
+        - "Vivado"
+        - "Vitis_HLS"
 
-- name: Add Vitis Model Composer to system-wide PATH
-  lineinfile:
-    path: /etc/bash.bashrc
-    line: 'export PATH={{ amd_apm_vitis_core_install_path }}/Model_Composer/{{ amd_apm_release }}/bin:$PATH'
-    state: "{{ 'absent' if amd_apm_vitis_core_install_vivado_only|bool else 'present' }}"
+    # Vitis is only installed, when install_vitis == true
+    # Model Composer comes with Vitis
+    - name: Add Vitis source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_apm_vitis_core_install_path }}/{{ item }}/{{ amd_apm_release }}/settings64.sh"
+        state: "{{ 'present' if amd_apm_vitis_core_install_vitis|bool else 'absent' }}"
+      loop:
+        - "Vitis"
+        - "Model_Composer"
+
+    - name: Add Vitis Model Composer to system-wide PATH
+      lineinfile:
+        path: /etc/bash.bashrc
+        line: 'export PATH={{ amd_apm_vitis_core_install_path }}/Model_Composer/{{ amd_apm_release }}/bin:$PATH'
+        state: "{{ 'absent' if amd_apm_vitis_core_install_vivado_only|bool else 'present' }}"
+
+- name: "INFO: set_bash_environment_variables is set to true is ignored"
+  debug:
+      msg: "amd_apm_vitis_core_set_bash_environment_variables is set to true, but this is ignored as there are more than one releases defined in the amd_apm_releases variable. Only one version can be actived at a time. Use a tool like `module` or `hdev` to manage multiple versions."
+    when:
+      - amd_apm_releases | length gt 1
+      - amd_apm_vitis_core_set_bash_environment_variables

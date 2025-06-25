@@ -8,6 +8,8 @@ amd_apm_vitis_core_install_path: /tools/Xilinx
 amd_apm_download_path: /opt/amd/downloads
 amd_apm_download_locally: false #TODO
 
+amd_apm_vitis_core_set_bash_environment_variables: true
+
 amd_apm_vitis_core_skip_download: true
 amd_apm_vitis_core_install_vitis: true
 amd_apm_vitis_core_remove_other_releases: false #TODO

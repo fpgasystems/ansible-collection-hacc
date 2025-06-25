@@ -41,6 +41,11 @@
     fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit (300Gb requested). Consider making space on drive or only installing vivado by setting `amd_apm_vitis_core_install_vitis: false` to the variables of your playbook"
   when: amd_apm_vitis_core_install_vitis
 
+- name: Set AMD Toolchain path facts
+  set_fact:
+    amd_apm_vitis_core_download_path: "{{ amd_apm_download_path }}/vitis-core"
+    amd_apm_vitis_core_extraction_path: "{{ amd_apm_vitis_core_download_path }}/{{ amd_apm_vitis_core_package }}"
+
 
 # DOWNLOAD
 # runs when:
