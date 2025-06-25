@@ -28,18 +28,41 @@
 
 # REMOVE
 
+#TODO: remove is currently not yet safe. Fix the find task in this taskfile
 - name: Remove other Vitis/Vivado releases
   include_tasks: ./uninstall-vitis-core.yml
-  when: amd_apm_vitis_core_remove_other_releases
+  when: false
 
+
+# CHECK SPACE
+
+# Checking versions of vivado, because vivado is always installed independent of install_vitis variable
+- name: Find all versions of Vivado that are installed and are requested to be installed
+  find:
+    paths: "{{ amd_apm_vitis_core_install_path }}/Vivado/"
+    patterns: "{{ amd_apm_releases }}"
+    file_type: directory
+    use_regex: false
+  register: amd_apm_vitis_core_installed_releases
 
 #TODO: check if 300GB is correct or too conservative
-#TODO: correct for already installed versions
-- name: "Assert that there is enough space (300 GB per release: so >{{ 300*amd_apm_releases|length }}GB for {{amd_apm_releases|length}} release(s)) on disk for tools installation"
+- name: "Assert that there is enough space (300 GB per release) on disk for Vitis+Vivado installation. ({{ amd_apm_releases | length }} releases requested, {{ amd_apm_vitis_core_installed_releases.matched }} releases already installed, so need {{ 300 * (amd_apm_releases|length - amd_apm_vitis_core_installed_releases.matched) }} GB freespace)"
   assert:
-    that: ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int is gt (amd_apm_releases|length * 300000000000)
-    fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit (300Gb requested). Consider making space on drive or only installing vivado by setting `amd_apm_vitis_core_install_vitis: false` to the variables of your playbook"
+    that: ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int is gt ( (amd_apm_releases|length - amd_apm_vitis_core_installed_releases.matched) * 300000000000)
+    fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit ({{ 300 * (amd_apm_releases|length - amd_apm_vitis_core_installed_releases.matched) }} GB requested). Consider making space on drive or only installing vivado by setting `amd_apm_vitis_core_install_vitis: false` to the variables of your playbook"
   when: amd_apm_vitis_core_install_vitis
+
+#TODO: check if 100GB is correct or too conservative
+- name: "Assert that there is enough space (100 GB per release) on disk for Vivado only installation. ({{ amd_apm_releases | length }} releases requested, {{ amd_apm_vitis_core_installed_releases.matched }} releases already installed, so need {{ 100 * (amd_apm_releases|length - amd_apm_vitis_core_installed_releases.matched) }} GB freespace)"
+  assert:
+    that: ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int is gt ( (amd_apm_releases|length - amd_apm_vitis_core_installed_releases.matched) * 100000000000)
+    fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit ({{ 100 * (amd_apm_releases|length - amd_apm_vitis_core_installed_releases.matched) }} GB requested). Consider making space on drive or only installing vivado by setting `amd_apm_vitis_core_install_vitis: false` to the variables of your playbook"
+  when: not amd_apm_vitis_core_install_vitis
+
+- fail:
+    msg: "stop"
+
+
 
 - name: Set AMD Toolchain path facts
   set_fact:

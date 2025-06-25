@@ -12,6 +12,7 @@
     path: "{{ item.path }}"
     state: absent
   with_list: "{{ vitis_core_release_directories_to_delete['files'] }}"
+  when: amd_apm_vitis_core_remove_other_releases
 
 - name: "Remove all AMD tool related settings from bash that are not of {{ amd_apm_releases | first }} release"
   when:
@@ -56,32 +57,3 @@
         regexp: '^export\s+PATH={{ amd_apm_vitis_core_install_path }}/Model_Composer/[^/]+/bin:\$PATH'
         state: absent
 
-#- name: Gather Facts about Vitis directory
-#  stat:
-#    path: "{{ amd_apm_vitis_core_install_path }}/Vitis/{{ amd_apm_release }}"
-#  register: Vitis_version_directory
-#
-#- name: Check if Vitis version directory exists
-#  assert:
-#    that: Vitis_version_directory.stat.exists == true
-#
-#- name: Find all directories in the Vivado folder
-#  find:
-#    paths:
-#      - "{{ amd_apm_vitis_core_install_path }}/Vitis"
-#      - "{{ amd_apm_vitis_core_install_path }}/Vitis_HLS"
-#      - "{{ amd_apm_vitis_core_install_path }}/Vivado"
-#    file_type: "directory"
-#    recurse: false
-#  register: vitis_versions
-#
-#- debug:
-#    msg: "{{vitis_versions}}"
-#
-#
-#- name: test
-#  assert:
-#    that:
-#      - vitis_versions.files|length == 1
-#      - vitis_versions.files[0].path == "/tools/Xilinx/Vitis/{{amd_apm_release}}"
-#
