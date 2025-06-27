@@ -30,7 +30,7 @@
 
 #TODO: remove is currently not yet safe. Fix the find task in this taskfile
 - name: Remove other Vitis/Vivado releases
-  include_tasks: ./uninstall-vitis-core.yml
+  include_tasks: ./uninstall.yml
   when: false
 
 
@@ -84,7 +84,7 @@
 #   - vitis should be installed and the specific vitis release directory does not exist
 - name: Download AMD Toolchain
   include_tasks:
-    file: "./download-{% if amd_apm_download_locally %}local{% else %}remote{% endif %}.yml"
+    file: "./download-zip-{% if amd_apm_download_locally %}local{% else %}remote{% endif %}.yml"
   with_list: "{{ amd_apm_vitis_core_pre_install_vivado_check.results }}"
   vars:
     amd_apm_release: "{{ item.release }}"
@@ -100,7 +100,7 @@
 #   or
 #   - vitis should be installed and the specific vitis release directory does not exist
 - name: Install AMD Toolchain
-  include_tasks: ./install-vitis-core.yml
+  include_tasks: ./install-zip.yml
   with_list: "{{ amd_apm_vitis_core_pre_install_vivado_check.results }}"
   vars:
     amd_apm_release: "{{ item.release }}"
