@@ -1,0 +1,98 @@
+---
+
+- name: "[Install {{ amd_apm_release }}] Set Vitis Core facts"
+  ansible.builtin.set_fact:
+    amd_apm_tools_download_path: "{{ amd_apm_download_path }}/tools"
+    amd_apm_tools_installer_bin: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['tools']['installer']['latest']['bin'] }}"
+    amd_apm_tools_installer_bin: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['tools']['installer']['latest']['checksum_md5'] }}"
+    amd_apm_tools_installer: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release }}/{{ amd_apm_tools_installer_bin }}"
+
+#TODO: check if amd_apm_user_email and amd_apm_user_password are set
+
+- name: "[Install {{ amd_apm_release }}] Gather stats about Tools installer"
+  stat:
+    path: "{{ amd_apm_tools_installer }}"
+    checksum_algorithm: md5
+    get_checksum: True
+  register: amd_apm_tools_installer_stats
+
+- name: "[Install {{ amd_apm_release }}] Assert that the installer is available"
+# TODO: maybe also assert that the checksum is correct?
+  assert:
+    that:
+      - amd_apm_tools_installer_stats.stat.exists
+      - amd_apm_tools_installer_stats.stat.checksum == amd_apm_tools_installer_checksum
+    fail_msg: "[ERROR] Can't find the AMD tools installer: {{ amd_apm_tools_installer }}. Please download it from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html"
+
+- name: Ensure Vitis install directory exists
+  ansible.builtin.file:
+    path: "{{ amd_apm_tools_install_path }}"
+    state: directory
+
+#TODO: check .Xilinx/wi_authentication_key if there is a current key for the email-address and that it is still valid
+- name: "[Install {{ amd_apm_release }}] Generate AMD Auth token"
+  expect:
+    command: "{{ amd_apm_tools_installer }} --nox11 -- --batch AuthTokenGen"
+    responses:
+      "E-mail Addres:":
+        - "{{ amd_apm_user_email }}"
+      "Password:":
+        - "{{ amd_apm_user_password }}"
+  no_log: true
+
+- name: "[Install {{ amd_apm_release }}] Generate AMD tools configuration file"
+  expect:
+    command: "{{ amd_apm_tools_installer }} --nox11 -- --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_tools_install_vitis %}Vitis{% else %}Vivado{% endif %}'"
+    responses:
+      "Please choose: ":
+        - "1"
+
+- name: "[Install {{ amd_apm_release }}] Install Tools (this can take up to 6 hours...)"
+  command: "{{ amd_apm_tools_installer }} --nox11 -- --batch Install --config /root/.Xilinx/install_config.txt --agree XilinxEULA,3rdPartyEULA "
+    creates: "{{ amd_apm_tools_install_path }}/Vivado/{{ amd_apm_release }}"
+  vars:
+    # wait up to 6 hours
+    ansible_command_timout: 21600
+    ansible_ssh_timout: 21600
+
+
+- name: "[Install {{ amd_apm_release }}] Set bash environment"
+  when:
+    - amd_apm_releases | length == 1
+    - amd_apm_tools_set_bash_environment_variables
+  block:
+    #Vivado is always installed
+    #Vitis_HLS also comes with Vivado
+    - name: Add Vivado source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_apm_tools_install_path }}/{{ item }}/{{ amd_apm_release }}/settings64.sh"
+      loop:
+        - "Vivado"
+        - "Vitis_HLS"
+
+    # Vitis is only installed, when install_vitis == true
+    # Model Composer comes with Vitis
+    - name: Add Vitis source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_apm_tools_install_path }}/{{ item }}/{{ amd_apm_release }}/settings64.sh"
+        state: "{{ 'present' if amd_apm_tools_install_vitis|bool else 'absent' }}"
+      loop:
+        - "Vitis"
+        - "Model_Composer"
+
+    - name: Add Vitis Model Composer to system-wide PATH
+      lineinfile:
+        path: /etc/bash.bashrc
+        line: 'export PATH={{ amd_apm_tools_install_path }}/Model_Composer/{{ amd_apm_release }}/bin:$PATH'
+        state: "{{ 'absent' if amd_apm_tools_install_vivado_only|bool else 'present' }}"
+
+- name: "INFO: `set_bash_environment_variables: true` is ignored"
+  debug:
+      msg: "amd_apm_tools_set_bash_environment_variables is set to true, but this is ignored as there are more than one releases defined in the amd_apm_releases variable. Only one version can be actived at a time. Use a tool like `hdev` or `module` to manage multiple versions."
+    when:
+      - amd_apm_releases | length gt 1
+      - amd_apm_tools_set_bash_environment_variables
