@@ -8,7 +8,7 @@ amd_apm_packages:
           url: https://download.amd.com/opendownload/xrt/
           package: xrt_202420.2.18.179_22.04-amd64-xrt.deb
           checksum: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
-        vitis_core:
+        tools:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           #package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141 # update 2
           #checksum: sha256:8cbba41af8bd407d05d4b1e3c7227767553961b6c98f1cde144feb3d961e40e3 #update 2
@@ -23,12 +23,12 @@ amd_apm_packages:
               - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
               - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
               - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
-          
+
       '2024.1':
         xrt:
           url: https://www.amd.com/bin/public/amdOpenDownload?filename=
           package: xrt_202410.2.17.319_22.04-amd64-xrt.deb
-        vitis_core: # test data
+        tools: # test data
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           #package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141 # update 2
           #checksum: sha256:8cbba41af8bd407d05d4b1e3c7227767553961b6c98f1cde144feb3d961e40e3 #update 2
@@ -44,7 +44,7 @@ amd_apm_packages:
         xrt:
           url: https://www.amd.com/bin/public/amdOpenDownload?filename=
           package: xrt_202310.2.15.225_20.04-amd64-xrt.deb
-        vitis_core: #test data
+        tools: #test data
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           #package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141 # update 2
           #checksum: sha256:8cbba41af8bd407d05d4b1e3c7227767553961b6c98f1cde144feb3d961e40e3 #update 2

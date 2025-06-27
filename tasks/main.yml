@@ -4,7 +4,7 @@
 #   - if other version installed, then remove and clean up
 
 # 2) Install Vitis core
-- include_tasks: ./vitis-core/main-vitis-core.yml
+- include_tasks: ./tools/main.yml
 
 # 3) Install XRT
 #- include_tasks: ./xrt.yml
