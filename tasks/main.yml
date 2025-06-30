@@ -1,5 +1,8 @@
 ---
 
+- name: "Load the amd packages dictionary for the target distribution"
+  include_vars: "amd-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+
 # 1) Check if components are installed of other version than specified by variable.
 #   - if other version installed, then remove and clean up
 
