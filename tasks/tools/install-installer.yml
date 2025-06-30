@@ -99,43 +99,5 @@
     ansible_ssh_timout: 21600
 
 
-- name: "[Install {{ amd_apm_release }}] Set bash environment"
-  when:
-    - amd_apm_releases | length == 1
-    - amd_apm_tools_set_bash_environment_variables
-  block:
-    #Vivado is always installed
-    #Vitis_HLS also comes with Vivado
-    - name: Add Vivado source scripts to general bashrc
-      lineinfile:
-        path: /etc/bash.bashrc
-        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
-        line: "source {{ amd_apm_tools_install_path }}/{{ item }}/{{ amd_apm_release }}/settings64.sh"
-      loop:
-        - "Vivado"
-        - "Vitis_HLS"
-
-    # Vitis is only installed, when install_vitis == true
-    # Model Composer comes with Vitis
-    - name: Add Vitis source scripts to general bashrc
-      lineinfile:
-        path: /etc/bash.bashrc
-        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
-        line: "source {{ amd_apm_tools_install_path }}/{{ item }}/{{ amd_apm_release }}/settings64.sh"
-        state: "{{ 'present' if amd_apm_tools_install_vitis|bool else 'absent' }}"
-      loop:
-        - "Vitis"
-        - "Model_Composer"
-
-    - name: Add Vitis Model Composer to system-wide PATH
-      lineinfile:
-        path: /etc/bash.bashrc
-        line: 'export PATH={{ amd_apm_tools_install_path }}/Model_Composer/{{ amd_apm_release }}/bin:$PATH'
-        state: "{{ 'absent' if amd_apm_tools_install_vivado_only|bool else 'present' }}"
-
-- name: "INFO: `set_bash_environment_variables: true` is ignored"
-  debug:
-    msg: "amd_apm_tools_set_bash_environment_variables is set to true, but this is ignored as there are more than one releases defined in the amd_apm_releases variable. Only one version can be actived at a time. Use a tool like `hdev` or `module` to manage multiple versions."
-  when:
-    - amd_apm_releases | length gt 1
-    - amd_apm_tools_set_bash_environment_variables
+- name: "[Install {{ amd_apm_release }}] Post installation tasks (set environment variables etc.)"
+  include_tasks: ./post-install.yml

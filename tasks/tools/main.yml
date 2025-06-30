@@ -64,7 +64,6 @@
 - name: Set AMD Toolchain path facts
   ansible.builtin.set_fact:
     amd_apm_tools_download_path: "{{ amd_apm_download_path }}/tools"
-    #amd_apm_tools_extraction_path: "{{ amd_apm_tools_download_path }}/{{ amd_apm_tools_package }}"
 
 
 # DOWNLOAD
