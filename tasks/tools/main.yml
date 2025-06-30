@@ -1,15 +1,12 @@
 ---
 
 # CHECK
-# loop over all versions that need to be installed:
-# options:
-#   - amd_apm_release: 2020.1? - 2025.1
-#   - tools: vitis and/or vivado
 
-    #- "Vitis"
-    #- "Vitis_HLS"
-    #- "Vivado"
-    #- "Model_Composer"
+- name: Assert that a valid install method for the tools is selected
+  assert:
+    that: amd_apm_tools_install_method in ["installer", "zip"]
+    fail_msg: "Invalid value for amd_apm_tools_install_method. Must be either 'installer' or 'zip'."
+
 - name: Vitis pre install check
   stat:
     path: "{{ amd_apm_tools_install_path }}/Vitis/{{ release }}"
@@ -49,9 +46,6 @@
   set_fact:
     amd_apm_tools_install_mount_point: "{{ ansible_mounts | selectattr('mount', 'in', amd_apm_tools_install_path) | sort(attribute='mount', reverse=true) | first }}"
 
-- debug:
-    msg: "{{ amd_apm_tools_install_mount_point }}"
-
 #TODO: check if 300GB is correct or too conservative
 - name: "Assert that there is enough space (300 GB per release) on disk ({{ amd_apm_tools_install_mount_point }}) for Vitis+Vivado installation. ({{ amd_apm_releases | length }} releases requested, {{ amd_apm_tools_installed_releases.matched }} releases already installed, so need {{ 300 * (amd_apm_releases|length - amd_apm_tools_installed_releases.matched) }} GB freespace)"
   assert:
@@ -66,15 +60,11 @@
     fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit ({{ 100 * (amd_apm_releases|length - amd_apm_tools_installed_releases.matched) }} GB requested). Consider making space on drive or only installing vivado by setting `amd_apm_tools_install_vitis: false` to the variables of your playbook"
   when: not amd_apm_tools_install_vitis
 
-- fail:
-    msg: "stop"
-
-
 
 - name: Set AMD Toolchain path facts
-  set_fact:
+  ansible.builtin.set_fact:
     amd_apm_tools_download_path: "{{ amd_apm_download_path }}/tools"
-    amd_apm_tools_extraction_path: "{{ amd_apm_tools_download_path }}/{{ amd_apm_tools_package }}"
+    #amd_apm_tools_extraction_path: "{{ amd_apm_tools_download_path }}/{{ amd_apm_tools_package }}"
 
 
 # DOWNLOAD
@@ -82,16 +72,16 @@
 #   - vivado release directory does not exist
 #   or
 #   - vitis should be installed and the specific vitis release directory does not exist
-- name: Download AMD Toolchain
-  include_tasks:
-    file: "./download-zip-{% if amd_apm_download_locally %}local{% else %}remote{% endif %}.yml"
-  with_list: "{{ amd_apm_tools_pre_install_vivado_check.results }}"
-  vars:
-    amd_apm_release: "{{ item.release }}"
-  when: >
-      item.stat.exists == false or
-      amd_apm_tools_install_vitis and
-      not amd_apm_tools_pre_install_vitis_check.results | list | selectattr('release', 'equalto', item.release) | selectattr('stat.exists')
+#- name: Download AMD Toolchain
+#  include_tasks:
+#    file: "./download-zip-{% if amd_apm_download_locally %}local{% else %}remote{% endif %}.yml"
+#  with_list: "{{ amd_apm_tools_pre_install_vivado_check.results }}"
+#  vars:
+#    amd_apm_release: "{{ item.release }}"
+#  when: >
+#      item.stat.exists == false or
+#      amd_apm_tools_install_vitis and
+#      not amd_apm_tools_pre_install_vitis_check.results | list | selectattr('release', 'equalto', item.release) | selectattr('stat.exists')
 
 
 # INSTALL
@@ -100,7 +90,7 @@
 #   or
 #   - vitis should be installed and the specific vitis release directory does not exist
 - name: Install AMD Toolchain
-  include_tasks: ./install-zip.yml
+  include_tasks: "./install-{{ amd_apm_tools_install_method }}.yml"
   with_list: "{{ amd_apm_tools_pre_install_vivado_check.results }}"
   vars:
     amd_apm_release: "{{ item.release }}"
