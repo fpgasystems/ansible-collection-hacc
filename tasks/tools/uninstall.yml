@@ -2,7 +2,11 @@
 
 - name: Gather directories of releases to delete
   find:
-    paths: "{{ amd_apm_tools_install_path }}"
+    paths:
+      - "{{ amd_apm_tools_install_path }}/Vivado"
+      - "{{ amd_apm_tools_install_path }}/Vitis_HLS"
+      - "{{ amd_apm_tools_install_path }}/Vitis"
+      - "{{ amd_apm_tools_install_path }}/Model_Composer"
     file_type: directory
     excludes: "{{ amd_apm_releases }}"
   register: amd_apm_tools_release_directories_to_delete
@@ -24,7 +28,7 @@
         path: /etc/bash.bashrc
         regexp: '^source\s+{{ amd_apm_tools_install_path }}/{{ item }}/(?!({{ amd_apm_releases | first }}))[^/]+/settings64\.sh'
         state: absent
-      loop:
+      with_list:
         - "Vivado"
         - "Vitis_HLS"
         - 'Vitis'
@@ -45,7 +49,7 @@
         path: /etc/bash.bashrc
         regexp: '^source\s+{{ amd_apm_tools_install_path }}/{{ item }}/[^/]+/settings64\.sh'
         state: absent
-      loop:
+      with_list:
         - "Vivado"
         - "Vitis_HLS"
         - 'Vitis'

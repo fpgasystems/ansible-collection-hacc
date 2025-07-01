@@ -11,7 +11,7 @@ amd_apm_tools_set_bash_environment_variables: true
 
 amd_apm_tools_skip_download: true
 amd_apm_tools_install_vitis: true
-amd_apm_tools_remove_other_releases: false #TODO
+amd_apm_tools_remove_other_releases: false
 amd_apm_tools_install_method: "installer"  #choose: installer or zip
 
 amd_apm_user_email: null

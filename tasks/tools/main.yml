@@ -28,7 +28,6 @@
 #TODO: remove is currently not yet safe. Fix the find task in this taskfile
 - name: Remove other Vitis/Vivado releases
   include_tasks: ./uninstall.yml
-  when: false
 
 
 # CHECK SPACE
