@@ -42,7 +42,7 @@
 
 - name: Remove all AMD tool related settings from bash
   when:
-    - (amd_apm_releases | length gt 1) or not amd_apm_tools_set_bash_environment_variables
+    - ((amd_apm_releases | length) > 1) or not amd_apm_tools_set_bash_environment_variables
   block:
     - name: Remove all source scripts from general bashrc
       lineinfile:

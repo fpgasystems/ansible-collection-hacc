@@ -6,7 +6,7 @@
 # 1) Check if components are installed of other version than specified by variable.
 #   - if other version installed, then remove and clean up
 
-# 2) Install Vitis core
+# 2) Install AMD toolchain
 - include_tasks: ./tools/main.yml
 
 # 3) Install XRT
