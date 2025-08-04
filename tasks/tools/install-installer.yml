@@ -89,6 +89,17 @@
       "Please choose: ":
         - "1"
 
+- name: "[Install {{ amd_apm_release }}] Disable shortcut creation"
+  lineinfile:
+    path: /root/.Xilinx/install_config.txt
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line  }}"
+  loop:
+    - { regexp: '^CreateProgramGroupShortcuts=', line: 'CreateProgramGroupShortcuts=0' }
+    - { regexp: '^CreateShortcutsForAllUsers=', line: 'CreateShortcutsForAllUsers=0' }
+    - { regexp: '^CreateDesktopShortcuts=', line: 'CreateDesktopShortcuts=0' }
+    - { regexp: '^CreateFileAssociation=', line: 'CreateFileAssociation=0' }
+
 - name: "[Install {{ amd_apm_release }}] Install Tools (this can take up to 6 hours...)"
   command: "{{ amd_apm_tools_installer }} --nox11 -- --batch Install --config /root/.Xilinx/install_config.txt --agree XilinxEULA,3rdPartyEULA"
   args:
@@ -98,6 +109,3 @@
     ansible_command_timout: 21600
     ansible_ssh_timout: 21600
 
-
-- name: "[Install {{ amd_apm_release }}] Post installation tasks (set environment variables etc.)"
-  include_tasks: ./post-install.yml
