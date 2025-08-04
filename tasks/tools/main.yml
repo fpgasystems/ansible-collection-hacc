@@ -74,12 +74,14 @@
 #  include_tasks:
 #    file: "./download-zip-{% if amd_apm_download_locally %}local{% else %}remote{% endif %}.yml"
 #  with_list: "{{ amd_apm_tools_pre_install_vivado_check.results }}"
+#  loop_control:
+#    loop_var: installation
 #  vars:
-#    amd_apm_release: "{{ item.release }}"
+#    amd_apm_release: "{{ installation.release }}"
 #  when: >
-#      item.stat.exists == false or
+#      installation.stat.exists == false or
 #      amd_apm_tools_install_vitis and
-#      not amd_apm_tools_pre_install_vitis_check.results | list | selectattr('release', 'equalto', item.release) | selectattr('stat.exists')
+#      not amd_apm_tools_pre_install_vitis_check.results | list | selectattr('release', 'equalto', installation.release) | selectattr('stat.exists')
 
 
 # INSTALL
@@ -90,9 +92,20 @@
 - name: Install AMD Toolchain
   include_tasks: "./install-{{ amd_apm_tools_install_method }}.yml"
   with_list: "{{ amd_apm_tools_pre_install_vivado_check.results }}"
+  loop_control:
+    loop_var: installation
   vars:
-    amd_apm_release: "{{ item.release }}"
+    amd_apm_release: "{{ installation.release }}"
   when: >
-      item.stat.exists == false or
+      installation.stat.exists == false or
       amd_apm_tools_install_vitis and
-      not amd_apm_tools_pre_install_vitis_check.results | list | selectattr('release', 'equalto', item.release) | selectattr('stat.exists')
+      not amd_apm_tools_pre_install_vitis_check.results | list | selectattr('release', 'equalto', installation.release) | selectattr('stat.exists')
+
+- name: Post installation tasks (set environment variables etc.)
+  include_tasks: ./post-install.yml
+  with_list: "{{ amd_apm_tools_pre_install_vivado_check.results }}"
+  loop_control:
+    loop_var: installation
+  vars:
+    amd_apm_release: "{{ installation.release }}"
+
