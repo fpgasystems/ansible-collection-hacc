@@ -1,6 +1,33 @@
 ---
 
 amd_apm_packages:
+  '2025.1':
+    xrt:
+      url: https://download.amd.com/opendownload/xrt/
+      package: xrt_202420.2.18.179_22.04-amd64-xrt.deb
+      checksum: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
+    tools:
+      zip:
+        latest:
+          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+          package: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145
+          extention: .tar
+          checksum_md5: 144b21e7a231081821d13f85495dd809
+        base:
+          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+          package: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145
+          extention: .tar
+          checksum_md5: 144b21e7a231081821d13f85495dd809
+      installer:
+        latest:
+          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+          bin: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145_Lin64.bin
+          checksum_md5:  d454c48fc36481c21d3255b23f9b6c73
+        base:
+          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+          bin: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145_Lin64.bin
+          checksum_md5:  d454c48fc36481c21d3255b23f9b6c73
+
   '2024.2':
     xrt:
       url: https://download.amd.com/opendownload/xrt/
@@ -33,15 +60,16 @@ amd_apm_packages:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           bin: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001_Lin64.bin
           checksum_md5: 20c806793b3ea8d79273d5138fbd195f
-    u50d:
-      deployment:
-        url: https://www.amd.com/bin/public/amdOpenDownload?filename=
-        archive: xilinx-u50-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz
-        package:
-          - xilinx-cmc-u50_1.0.40-3398385_all.deb
-          - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
-          - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
-          - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
+    boards:
+      - u50d:
+          deployment:
+            url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+            archive: xilinx-u50-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz
+            package:
+              - xilinx-cmc-u50_1.0.40-3398385_all.deb
+              - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
+              - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
+              - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
 
   '2024.1':
     xrt:

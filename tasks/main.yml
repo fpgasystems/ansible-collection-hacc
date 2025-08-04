@@ -6,15 +6,39 @@
 # 1) Check if components are installed of other version than specified by variable.
 #   - if other version installed, then remove and clean up
 
-# 2) Install AMD toolchain
+# 2) Install XRT
+# TODO: make xrt support multi version installs
+#- include_tasks: ./xrt.yml
+#  vars:
+#    amd_apm_release: "{{ item }}"
+#  loop: "{{ amd_apm_releases }}"
+
+# 3) Install deployement targets
+# TODO: create deployment targets tasks
+#- set_fact:
+#    xilinx_deployment_package_name:
+#      - xilinx-cmc-u50_1.0.40-3398385_all.deb
+#      - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
+#      - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
+#      - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
+#
+#- apt:
+#    deb: "{{ amd_apm_download_path }}/Deployment_Target_Platforms/{{ item }}"
+#    state: present
+#  loop: "{{ xilinx_deployment_package_name }}"
+
+# 4) Install development targets
+# TODO: create development targets tasks
+#- set_fact:
+#    xilinx_development_package_name:
+#      - xilinx-u50-gen3x16-xdma-5-202210-1-dev_1-3499627_all.deb
+#
+#- apt:
+#    deb: "{{ amd_apm_download_path }}/Development_Target_Platforms/{{ item }}"
+#    state: present
+#  loop: "{{ xilinx_development_package_name }}"
+
+# 5) Install AMD toolchain
 - include_tasks: ./tools/main.yml
 
-# 3) Install XRT
-#- include_tasks: ./xrt.yml
-
-
-# 4) Install deployement targets
-#
-# 5) Install development targets
-#
 # 6) Install Vitis AI (optional)
