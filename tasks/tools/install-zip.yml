@@ -1,12 +1,19 @@
 ---
 
+- name: "[Install {{ amd_apm_release }}] Set AMD Toolchain update level"
+  ansible.builtin.set_fact:
+    amd_apm_tools_update_level: 'latest'
+
 - name: "[Install {{ amd_apm_release }}] Set AMD Toolchain facts"
   ansible.builtin.set_fact:
-    amd_apm_tools_download_url: "{{ amd_apm_packages[amd_apm_release]['tools']['zip']['latest']['url'] }}"
-    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release]['tools']['zip']['latest']['package'] }}"
-    amd_apm_tools_archive: "{{ amd_apm_packages[amd_apm_release]['tools']['zip']['latest']['package'] }}.tar"
-    amd_apm_tools_zip_checksum: "{{ amd_apm_packages[amd_apm_release]['tools']['zip']['latest']['checksum_md5'] }}"
-#TODO: read extention from vars database, as they are not for all versions .tar, sometimes they are .tar.gz
+    amd_apm_tools_download_url: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['url'] }}"
+    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['package'] }}"
+    amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['extention'] }}"
+    amd_apm_tools_zip_checksum: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['checksum_md5'] }}"
+
+- name: "[Install {{ amd_apm_release }}] Set archive name fact"
+  ansible.builtin.set_fact:
+    amd_apm_tools_archive: "{{ amd_apm_tools_package }}{{ amd_apm_tools_archive_extention }}"
 
 - name: "[Install {{ amd_apm_release }}] Set tools archive extraction path"
   ansible.builtin.set_fact:
