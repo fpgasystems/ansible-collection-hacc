@@ -34,6 +34,26 @@ amd_apm_packages:
       package: xrt_202420.2.18.179_22.04-amd64-xrt.deb
       checksum: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
     tools:
+      prerequisites:
+        - libc6-dev-i386
+        - net-tools
+        - graphviz
+        - make
+        - unzip
+        - zip
+        - g++
+        - libtinfo5
+        - xvfb
+        - git
+        - libncursesw5
+        - libc6-dev-i386
+        - libnss3-dev
+        - libgdk-pixbuf2.0-dev
+        - libgtk-3-dev
+        - libxss-dev
+        - libasound2
+        - compat-openssl10
+        - fdisk
       zip:
         latest:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=

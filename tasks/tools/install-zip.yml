@@ -10,6 +10,7 @@
     amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['package'] }}"
     amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['extention'] }}"
     amd_apm_tools_zip_checksum: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['checksum_md5'] }}"
+    amd_apm_tools_prerequisites: "{{ amd_apm_packages[amd_apm_release]['tools']['prerequisites'] }}"
 
 - name: "[Install {{ amd_apm_release }}] Set archive name fact"
   ansible.builtin.set_fact:
@@ -73,6 +74,18 @@
 
 
 # INSTALL
+
+#- name: "[Install {{ amd_apm_release }}] Install necessary libraries"
+#  command: "./installLibs.sh"
+#  args:
+#    chdir: "{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}"
+
+- name: "[Install {{ amd_apm_release }}] Install prerequisite packages"
+  package:
+    name: amd_apm_tools_prerequisites
+    state: present
+
+
 - name: "[Install {{ amd_apm_release }}] Ensure Vitis install directory exists"
   ansible.builtin.file:
     path: "{{ amd_apm_tools_install_path }}"
