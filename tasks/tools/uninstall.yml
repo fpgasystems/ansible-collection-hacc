@@ -11,7 +11,7 @@
     excludes: "{{ amd_apm_releases }}"
   register: amd_apm_tools_release_directories_to_delete
 
-- name: Delete older release directories
+- name: Delete unused release directories
   file:
     path: "{{ item.path }}"
     state: absent
