@@ -1,9 +1,13 @@
 ---
 
+- name: "[Install {{ amd_apm_release }}] Set AMD Toolchain update level"
+  ansible.builtin.set_fact:
+    amd_apm_tools_update_level: 'base'
+
 - name: "[Install {{ amd_apm_release }}] Set Tools facts"
   ansible.builtin.set_fact:
-    amd_apm_tools_installer_bin: "{{ amd_apm_packages[amd_apm_release]['tools']['installer']['latest']['bin'] }}"
-    amd_apm_tools_installer_checksum: "{{ amd_apm_packages[amd_apm_release]['tools']['installer']['latest']['checksum_md5'] }}"
+    amd_apm_tools_installer_bin: "{{ amd_apm_packages[amd_apm_release]['tools']['installer'][amd_apm_tools_update_level]['bin'] }}"
+    amd_apm_tools_installer_checksum: "{{ amd_apm_packages[amd_apm_release]['tools']['installer'][amd_apm_tools_update_level]['checksum_md5'] }}"
 
 - name: "[Install {{ amd_apm_release }}] Set Tools installer path fact"
   ansible.builtin.set_fact:

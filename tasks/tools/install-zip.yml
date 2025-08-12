@@ -2,7 +2,7 @@
 
 - name: "[Install {{ amd_apm_release }}] Set AMD Toolchain update level"
   ansible.builtin.set_fact:
-    amd_apm_tools_update_level: 'latest'
+    amd_apm_tools_update_level: 'base'
 
 - name: "[Install {{ amd_apm_release }}] Set AMD Toolchain facts"
   ansible.builtin.set_fact:
