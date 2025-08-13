@@ -1,63 +1,52 @@
 ---
 
-- name: Gather directories of releases to delete
-  find:
-    paths:
-      - "{{ amd_apm_tools_install_path }}/Vivado"
-      - "{{ amd_apm_tools_install_path }}/Vitis_HLS"
-      - "{{ amd_apm_tools_install_path }}/Vitis"
-      - "{{ amd_apm_tools_install_path }}/Model_Composer"
-    file_type: directory
-    excludes: "{{ amd_apm_releases_normalized | selectattr('state', 'ne', 'absent') | map(attribute='release') | list }}"
-  register: amd_apm_tools_release_directories_to_delete
+## Note: from release 2025.1 onwards, the installation layout changed.
+##  Up to 2024.2, the directory for a specific release was inside the directory for the program (eg. <install_path>/Vivado/2024.2)
+##  From 2025.1 onwards, all program directories are in a release directory (eg. <install_path>/2025.1/Vivado)
+##
 
-- name: Delete unused release directories
-  file:
-    path: "{{ item.path }}"
-    state: absent
-  with_list: "{{ amd_apm_tools_release_directories_to_delete['files'] }}"
-  when: amd_apm_tools_remove_other_releases
-
-- name: "Remove all AMD tool related settings from bash that are not of {{ amd_apm_releases | first }} release"
-  when:
-    - amd_apm_releases | length == 1
-    - amd_apm_tools_set_bash_environment_variables
+- name: Uninstall tasks for releases up to 2024.2
+  when: "{{ amd_apm_release.split('.')[0] | int }} <= 2024"
   block:
-    - name: "Remove any source scripts from general bashrc that are not of {{ amd_apm_releases | first }} release"
+    - name: "[Uninstall {{ amd_apm_release }}] Remove program files"
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ amd_apm_tools_install_path }}/Vivado/{{ amd_apm_release }}"
+        - "{{ amd_apm_tools_install_path }}/Vitis_HLS/{{ amd_apm_release }}"
+        - "{{ amd_apm_tools_install_path }}/Vitis/{{ amd_apm_release }}"
+        - "{{ amd_apm_tools_install_path }}/Model_Composer/{{ amd_apm_release }}"
+
+    - name: "[Uninstall {{ amd_apm_release }}] Remove bash source scripts"
       lineinfile:
         path: /etc/bash.bashrc
-        regexp: '^source\s+{{ amd_apm_tools_install_path }}/{{ item }}/(?!({{ amd_apm_releases | first }}))[^/]+/settings64\.sh'
+        regexp: '^source\s+{{ amd_apm_tools_install_path }}/[^/]+/{{ amd_apm_release }}/settings64\.sh'
         state: absent
-      with_list:
-        - "Vivado"
-        - "Vitis_HLS"
-        - 'Vitis'
-        - "Model_Composer"
 
-    - name: "Remove any Vitis Model Composer from system-wide PATH that are note of {{ amd_apm_releases | first }} release"
+    - name: "[Uninstall {{ amd_apm_release }}] Remove Model Composer from PATH"
       lineinfile:
         path: /etc/bash.bashrc
-        regexp: '^export\s+PATH={{ amd_apm_tools_install_path }}/Model_Composer/(?!({{ amd_apm_releases | first }}))[^/]+/bin:\$PATH'
+        regexp: '^export\s+PATH={{ amd_apm_tools_install_path }}/Model_Composer/{{ amd_apm_release }}/bin:\$PATH'
         state: absent
 
-- name: Remove all AMD tool related settings from bash
-  when:
-    - ((amd_apm_releases | length) > 1) or not amd_apm_tools_set_bash_environment_variables
+- name: Uninstall tasks for releases from 2025.1 and onwards
+  when: "{{ amd_apm_release.split('.')[0] | int }} >= 2025"
   block:
-    - name: Remove all source scripts from general bashrc
-      lineinfile:
-        path: /etc/bash.bashrc
-        regexp: '^source\s+{{ amd_apm_tools_install_path }}/{{ item }}/[^/]+/settings64\.sh'
+    - name: "[Uninstall {{ amd_apm_release }}] Remove program files"
+      file:
+        path: "{{ amd_apm_tools_install_path }}/{{ amd_apm_release }}"
         state: absent
-      with_list:
-        - "Vivado"
-        - "Vitis_HLS"
-        - 'Vitis'
-        - "Model_Composer"
 
-    - name: Remove all Vitis Model Composer from system-wide PATH
+    - name: "[Uninstall {{ amd_apm_release }}] Remove bash source scripts"
       lineinfile:
         path: /etc/bash.bashrc
-        regexp: '^export\s+PATH={{ amd_apm_tools_install_path }}/Model_Composer/[^/]+/bin:\$PATH'
+        regexp: '^source\s+{{ amd_apm_tools_install_path }}/{{ amd_apm_release }}/[^/]+/settings64\.sh'
+        state: absent
+
+    - name: "[Uninstall {{ amd_apm_release }}] Remove Model Composer from PATH"
+      lineinfile:
+        path: /etc/bash.bashrc
+        regexp: '^export\s+PATH={{ amd_apm_tools_install_path }}/{{ amd_apm_release }}/Model_Composer/bin:\$PATH'
         state: absent
 

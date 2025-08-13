@@ -33,10 +33,35 @@
 
 # REMOVE
 
-#TODO: remove is currently not yet safe. Fix the find task in this taskfile
-- name: Remove other Vitis/Vivado releases
+- name: Uninstall Vitis/Vivado releases with state absent
   include_tasks: ./uninstall.yml
+  loop: "{{ amd_apm_releases_normalized | selectattr('state', 'eq', 'absent') | map(attribute='release') | list }}"
+  loop_control:
+    loop_var: amd_apm_release
 
+- name: Uninstall dangling Vitis/Vivado releases
+  when: amd_apm_tools_uninstall_dangling_releases
+  block:
+    - name: Gather directories of dangling releases
+      find:
+        paths:
+          - "{{ amd_apm_tools_install_path }}"
+          - "{{ amd_apm_tools_install_path }}/Vivado"
+          - "{{ amd_apm_tools_install_path }}/Vitis"
+          - "{{ amd_apm_tools_install_path }}/Vitis_HLS"
+          - "{{ amd_apm_tools_install_path }}/Model_Composer"
+        file_type: directory
+        patterns: '^[0-9]{4}\.[0-9]$'
+        use_regex: True
+        excludes: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
+      register: amd_apm_tools_dangling_releases
+
+    - name: Uninstall dangling Vitis/Vivado releases
+      include_tasks: ./uninstall.yml
+      loop: "{{ amd_apm_tools_dangling_releases.files | map(attribute='path') | map('basename') | unique | list }}"
+      loop_control:
+        loop_var: amd_apm_release
+      when: "{{ amd_apm_tools_dangling_releases.files | length | int }} > 0"
 
 # CHECK SPACE
 
