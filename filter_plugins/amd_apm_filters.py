@@ -15,7 +15,8 @@ class FilterModule(object):
                 'release': item,
                 'install_method': 'zip',
                 'state': 'present',
-                'update_level': 'base'
+                'update_level': 'base',
+                'vivado_only': False
             }
         elif isinstance(item, dict):
             if 'release' not in item:
@@ -24,7 +25,8 @@ class FilterModule(object):
                 'release': item['release'],
                 'install_method': item.get('install_method', 'zip'),
                 'state': item.get('state', 'present'),
-                'update_level': item.get('update_level', 'base')
+                'update_level': item.get('update_level', 'base'),
+                'vivado_only': item.get('vivado_only', False)
             }
         else:
             raise AnsibleFilterError(f"Unsupported type: {type(item)}")

@@ -63,34 +63,31 @@
         loop_var: amd_apm_release
       when: "{{ amd_apm_tools_dangling_releases.files | length | int }} > 0"
 
+# SET FACTS
+
+- name: Gather directories of currently installed releases
+  find:
+    paths:
+      - "{{ amd_apm_tools_install_path }}"
+      - "{{ amd_apm_tools_install_path }}/Vivado"
+      - "{{ amd_apm_tools_install_path }}/Vitis"
+      - "{{ amd_apm_tools_install_path }}/Vitis_HLS"
+      - "{{ amd_apm_tools_install_path }}/Model_Composer"
+    file_type: directory
+    patterns: '^[0-9]{4}\.[0-9]$'
+    use_regex: True
+  register: amd_apm_tools_already_installed_release_directories
+
+- name: Check which requested releases are already installed
+  set_fact:
+    amd_apm_tools_already_installed_releases: "{{ amd_apm_tools_already_installed_release_directories.files | map(attribute='path') | map('basename') | unique | list }}"
+
+
 # CHECK SPACE
 
-# Checking versions of vivado, because vivado is always installed independent of install_vitis variable
-- name: Find all versions of Vivado that are installed and are requested to be installed
-  find:
-    paths: "{{ amd_apm_tools_install_path }}/Vivado/"
-    patterns: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
-    file_type: directory
-    use_regex: false
-  register: amd_apm_tools_installed_releases
-
-- name: Find the mount point of the installation path
-  set_fact:
-    amd_apm_tools_install_mount_point: "{{ ansible_mounts | selectattr('mount', 'in', amd_apm_tools_install_path) | sort(attribute='mount', reverse=true) | first }}"
-
-#TODO: check if 300GB is correct or too conservative
-- name: "Assert that there is enough space (300 GB per release) on disk ({{ amd_apm_tools_install_mount_point.mount }}) for Vitis+Vivado installation. ({{ amd_apm_releases | length }} releases requested, {{ amd_apm_tools_installed_releases.matched }} releases already installed, so need {{ 300 * (amd_apm_releases|length - amd_apm_tools_installed_releases.matched) }} GB freespace)"
-  assert:
-    that: amd_apm_tools_install_mount_point.size_available | int is gt ( (amd_apm_releases|length - amd_apm_tools_installed_releases.matched) * 300000000000)
-    fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit ({{ 300 * (amd_apm_releases|length - amd_apm_tools_installed_releases.matched) }} GB requested). Consider making space on drive or only installing vivado by setting `amd_apm_tools_install_vitis: false` to the variables of your playbook"
-  when: amd_apm_tools_install_vitis
-
-#TODO: check if 100GB is correct or too conservative
-- name: "Assert that there is enough space (100 GB per release) on disk ({{ amd_apm_tools_install_mount_point.mount }}) for Vivado only installation. ({{ amd_apm_releases | length }} releases requested, {{ amd_apm_tools_installed_releases.matched }} releases already installed, so need {{ 100 * (amd_apm_releases|length - amd_apm_tools_installed_releases.matched) }} GB freespace)"
-  assert:
-    that: amd_apm_tools_install_mount_point.size_available | int is gt ( (amd_apm_releases|length - amd_apm_tools_installed_releases.matched) * 100000000000)
-    fail_msg: "Disk does not have the minimum space required to Install Vitis Core Development Kit ({{ 100 * (amd_apm_releases|length - amd_apm_tools_installed_releases.matched) }} GB requested). Consider making space on drive or only installing vivado by setting `amd_apm_tools_install_vitis: false` to the variables of your playbook"
-  when: not amd_apm_tools_install_vitis
+- name: Check disk space
+  include_tasks: check_disk_space.yml
+  when: not amd_apm_tools_skip_disk_space_check
 
 
 - name: Set AMD Toolchain path facts
