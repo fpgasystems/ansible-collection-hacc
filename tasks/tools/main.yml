@@ -1,5 +1,13 @@
 ---
 
+- name: Normalize amd_apm_releases variable
+  set_fact:
+    amd_apm_releases_normalized: "{{ amd_apm_releases | map('normalize_releases_list') | list }}"
+
+- name: Assert that the normalized releases list is as long as the user entered list
+  assert:
+    that: amd_apm_releases | length == amd_apm_releases_normalized | length
+
 # CHECK
 
 - name: Assert that a valid install method for the tools is selected
@@ -10,16 +18,16 @@
 - name: Vitis pre install check
   stat:
     path: "{{ amd_apm_tools_install_path }}/Vitis/{{ release }}"
-  with_list: "{{ amd_apm_releases }}"
   register: amd_apm_tools_pre_install_vitis_check
+  loop: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
   loop_control:
     loop_var: release
 
 - name: Vivado pre install check
   stat:
     path: "{{ amd_apm_tools_install_path }}/Vivado/{{ release }}"
-  with_list: "{{ amd_apm_releases }}"
   register: amd_apm_tools_pre_install_vivado_check
+  loop: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
   loop_control:
     loop_var: release
 
@@ -36,7 +44,7 @@
 - name: Find all versions of Vivado that are installed and are requested to be installed
   find:
     paths: "{{ amd_apm_tools_install_path }}/Vivado/"
-    patterns: "{{ amd_apm_releases }}"
+    patterns: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
     file_type: directory
     use_regex: false
   register: amd_apm_tools_installed_releases

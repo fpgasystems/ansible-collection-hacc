@@ -8,7 +8,7 @@
       - "{{ amd_apm_tools_install_path }}/Vitis"
       - "{{ amd_apm_tools_install_path }}/Model_Composer"
     file_type: directory
-    excludes: "{{ amd_apm_releases }}"
+    excludes: "{{ amd_apm_releases_normalized | selectattr('state', 'ne', 'absent') | map(attribute='release') | list }}"
   register: amd_apm_tools_release_directories_to_delete
 
 - name: Delete unused release directories
