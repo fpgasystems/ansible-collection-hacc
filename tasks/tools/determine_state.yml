@@ -1,0 +1,119 @@
+---
+
+- name: Gather directories of currently installed releases
+  find:
+    paths:
+      - "{{ amd_apm_tools_install_path }}"
+    file_type: directory
+    use_regex: True
+    recurse: True
+    depth: 2
+  register: found_dirs
+
+- name: Determine for which version Vivado and Vitis are already present
+  set_fact:
+    releases_with_vivado_dir_present: >-
+      {{
+        found_dirs.files
+        | map(attribute='path')
+        | select(
+            "match",
+            amd_apm_tools_install_path + "/Vivado/\d{4}\.\d|"
+            + amd_apm_tools_install_path + "/\d{4}\.\d/Vivado"
+          )
+        | map('regex_search', '(\d{4}\.\d)')
+        | list
+        | unique
+      }}
+    releases_with_vitis_dir_present: >-
+      {{
+        found_dirs.files
+        | map(attribute='path')
+        | select(
+            "match",
+            amd_apm_tools_install_path + "/Vitis/\d{4}\.\d|"
+            + amd_apm_tools_install_path + "/\d{4}\.\d/Vitis"
+          )
+        | map('regex_search', '(\d{4}\.\d)')
+        | list
+        | unique
+      }}
+
+- name: Determine what to do for each release
+  set_fact:
+    releases_to_install: >-
+      {{
+        amd_apm_releases_normalized
+        | selectattr('state', 'eq', 'present')
+        | rejectattr('release', 'in', releases_with_vivado_dir_present)
+        | map(attribute='release')
+        | list
+      }}
+    releases_to_uninstall: >-
+      {{
+        amd_apm_releases_normalized
+        | selectattr('state', 'eq', 'absent')
+        | map(attribute='release')
+        | list
+      }}
+    releases_already_correct: >-
+      {{
+        amd_apm_releases_normalized
+        | selectattr('state', 'eq', 'present')
+        | selectattr('release', 'in', releases_with_vivado_dir_present)
+        | selectattr('vivado_only', 'eq', True)
+        | rejectattr('release', 'in', releases_with_vitis_dir_present)
+        | map(attribute='release')
+        | list
+        + (
+          amd_apm_releases_normalized
+          | selectattr('state', 'eq', 'present')
+          | selectattr('release', 'in', releases_with_vivado_dir_present)
+          | selectattr('vivado_only', 'eq', False)
+          | selectattr('release', 'in', releases_with_vitis_dir_present)
+          | map(attribute='release')
+          | list
+        )
+      }}
+    releases_to_reinstall: >-
+      {{
+        amd_apm_releases_normalized
+        | selectattr('state', 'eq', 'present')
+        | selectattr('release', 'in', releases_with_vivado_dir_present)
+        | selectattr('vivado_only', 'eq', False)
+        | rejectattr('release', 'in', releases_with_vitis_dir_present)
+        | map(attribute='release')
+        | list
+        + (
+          amd_apm_releases_normalized
+          | selectattr('state', 'eq', 'present')
+          | selectattr('release', 'in', releases_with_vivado_dir_present)
+          | selectattr('vivado_only', 'eq', True)
+          | selectattr('release', 'in', releases_with_vitis_dir_present)
+          | map(attribute='release')
+          | list
+        )
+      }}
+
+- name: Mark dangling Vitis/Vivado releases for removal
+  when: amd_apm_tools_uninstall_dangling_releases
+  block:
+    - name: Gather directories of dangling releases
+      find:
+        paths:
+          - "{{ amd_apm_tools_install_path }}"
+          - "{{ amd_apm_tools_install_path }}/Vivado"
+          - "{{ amd_apm_tools_install_path }}/Vitis"
+          - "{{ amd_apm_tools_install_path }}/Vitis_HLS"
+          - "{{ amd_apm_tools_install_path }}/Model_Composer"
+        file_type: directory
+        patterns: '^[0-9]{4}\.[0-9]$'
+        use_regex: True
+        excludes: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
+      register: amd_apm_tools_dangling_releases
+
+    - name:
+      set_fact:
+        releases_to_uninstall: "{{ releases_to_uninstall + (amd_apm_tools_dangling_releases.files | map(attribute='path') | map('basename') | unique | list) | unique }}"
+
+

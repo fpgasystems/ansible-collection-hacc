@@ -1,5 +1,7 @@
 ---
 
+# TODO: do this checking on the main level
+# Normalizing refers to filling in all attributes with defaults for the ones that were not set by the user
 - name: Normalize amd_apm_releases variable
   set_fact:
     amd_apm_releases_normalized: "{{ amd_apm_releases | map('normalize_releases_list') | list }}"
@@ -8,79 +10,31 @@
   assert:
     that: amd_apm_releases | length == amd_apm_releases_normalized | length
 
-# CHECK
-
-- name: Assert that a valid install method for the tools is selected
+- name: Assert that there are no duplicate releases in the amd_apm_releases variable
   assert:
-    that: amd_apm_tools_install_method in ["installer", "zip"]
-    fail_msg: "Invalid value for amd_apm_tools_install_method. Must be either 'installer' or 'zip'."
+    that: (amd_apm_releases_normalized | map(attribute='release') | list | unique | length) == (amd_apm_releases_normalized | length)
+    fail_msg: "Multiple definitions of the same release detected in the amd_apm_releases variable! Please only define a release once."
 
-- name: Vitis pre install check
-  stat:
-    path: "{{ amd_apm_tools_install_path }}/Vitis/{{ release }}"
-  register: amd_apm_tools_pre_install_vitis_check
-  loop: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
-  loop_control:
-    loop_var: release
+# TODO: check this on a per release object level, maybe even check it in the filter
+#- name: Assert that a valid install method for the tools is selected
+#  assert:
+#    that: amd_apm_tools_install_method in ["installer", "zip"]
+#    fail_msg: "Invalid value for amd_apm_tools_install_method. Must be either 'installer' or 'zip'."
 
-- name: Vivado pre install check
-  stat:
-    path: "{{ amd_apm_tools_install_path }}/Vivado/{{ release }}"
-  register: amd_apm_tools_pre_install_vivado_check
-  loop: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
-  loop_control:
-    loop_var: release
+
+# DETERMINE WHAT NEEDS TO BE DONE
+
+- name: Determine what needs to be done
+  include_tasks: determine_state.yml
+
 
 # REMOVE
 
 - name: Uninstall Vitis/Vivado releases with state absent
   include_tasks: ./uninstall.yml
-  loop: "{{ amd_apm_releases_normalized | selectattr('state', 'eq', 'absent') | map(attribute='release') | list }}"
+  loop: "{{ releases_to_uninstall + releases_to_reinstall }}"
   loop_control:
     loop_var: amd_apm_release
-
-- name: Uninstall dangling Vitis/Vivado releases
-  when: amd_apm_tools_uninstall_dangling_releases
-  block:
-    - name: Gather directories of dangling releases
-      find:
-        paths:
-          - "{{ amd_apm_tools_install_path }}"
-          - "{{ amd_apm_tools_install_path }}/Vivado"
-          - "{{ amd_apm_tools_install_path }}/Vitis"
-          - "{{ amd_apm_tools_install_path }}/Vitis_HLS"
-          - "{{ amd_apm_tools_install_path }}/Model_Composer"
-        file_type: directory
-        patterns: '^[0-9]{4}\.[0-9]$'
-        use_regex: True
-        excludes: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
-      register: amd_apm_tools_dangling_releases
-
-    - name: Uninstall dangling Vitis/Vivado releases
-      include_tasks: ./uninstall.yml
-      loop: "{{ amd_apm_tools_dangling_releases.files | map(attribute='path') | map('basename') | unique | list }}"
-      loop_control:
-        loop_var: amd_apm_release
-      when: "{{ amd_apm_tools_dangling_releases.files | length | int }} > 0"
-
-# SET FACTS
-
-- name: Gather directories of currently installed releases
-  find:
-    paths:
-      - "{{ amd_apm_tools_install_path }}"
-      - "{{ amd_apm_tools_install_path }}/Vivado"
-      - "{{ amd_apm_tools_install_path }}/Vitis"
-      - "{{ amd_apm_tools_install_path }}/Vitis_HLS"
-      - "{{ amd_apm_tools_install_path }}/Model_Composer"
-    file_type: directory
-    patterns: '^[0-9]{4}\.[0-9]$'
-    use_regex: True
-  register: amd_apm_tools_already_installed_release_directories
-
-- name: Check which requested releases are already installed
-  set_fact:
-    amd_apm_tools_already_installed_releases: "{{ amd_apm_tools_already_installed_release_directories.files | map(attribute='path') | map('basename') | unique | list }}"
 
 
 # CHECK SPACE
@@ -90,52 +44,21 @@
   when: not amd_apm_tools_skip_disk_space_check
 
 
+# INSTALL
+
 - name: Set AMD Toolchain path facts
   ansible.builtin.set_fact:
     amd_apm_tools_download_path: "{{ amd_apm_download_path }}/tools"
 
-
-# DOWNLOAD
-# runs when:
-#   - vivado release directory does not exist
-#   or
-#   - vitis should be installed and the specific vitis release directory does not exist
-#- name: Download AMD Toolchain
-#  include_tasks:
-#    file: "./download-zip-{% if amd_apm_download_locally %}local{% else %}remote{% endif %}.yml"
-#  with_list: "{{ amd_apm_tools_pre_install_vivado_check.results }}"
-#  loop_control:
-#    loop_var: installation
-#  vars:
-#    amd_apm_release: "{{ installation.release }}"
-#  when: >
-#      installation.stat.exists == false or
-#      amd_apm_tools_install_vitis and
-#      not amd_apm_tools_pre_install_vitis_check.results | list | selectattr('release', 'equalto', installation.release) | selectattr('stat.exists')
-
-
-# INSTALL
-# runs when:
-#   - vivado release directory does not exist
-#   or
-#   - vitis should be installed and the specific vitis release directory does not exist
 - name: Install AMD Toolchain
-  include_tasks: "./install-{{ amd_apm_tools_install_method }}.yml"
-  with_list: "{{ amd_apm_tools_pre_install_vivado_check.results }}"
+  include_tasks: "./install-{{ amd_apm_release.install_method }}.yml"
+  loop: "{{ amd_apm_releases_normalized | selectattr('release', 'in', releases_to_install + releases_to_reinstall) }}"
   loop_control:
-    loop_var: installation
-  vars:
-    amd_apm_release: "{{ installation.release }}"
-  when: >
-      installation.stat.exists == false or
-      amd_apm_tools_install_vitis and
-      not amd_apm_tools_pre_install_vitis_check.results | list | selectattr('release', 'equalto', installation.release) | selectattr('stat.exists')
+    loop_var: amd_apm_release
 
 - name: Post installation tasks (set environment variables etc.)
   include_tasks: ./post-install.yml
-  with_list: "{{ amd_apm_tools_pre_install_vivado_check.results }}"
+  loop: "{{ amd_apm_releases_normalized | selectattr('release', 'in', releases_to_install + releases_to_reinstall) }}"
   loop_control:
-    loop_var: installation
-  vars:
-    amd_apm_release: "{{ installation.release }}"
+    loop_var: amd_apm_release
 

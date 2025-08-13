@@ -1,9 +1,10 @@
 ---
 
-- name: "[Install {{ amd_apm_release }}] Set bash environment"
+- name: "[Install {{ amd_apm_release }}] Set bash environment (for  releases up to 2024.2)"
   when:
     - amd_apm_releases | length == 1
     - amd_apm_tools_set_bash_environment_variables
+    - "{{ amd_apm_release.release.split('.')[0] | int }} <= 2024"
   block:
     #Vivado is always installed
     #Vitis_HLS also comes with Vivado
@@ -11,7 +12,7 @@
       lineinfile:
         path: /etc/bash.bashrc
         insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
-        line: "source {{ amd_apm_tools_install_path }}/{{ program }}/{{ amd_apm_release }}/settings64.sh"
+        line: "source {{ amd_apm_tools_install_path }}/{{ program }}/{{ amd_apm_release.release }}/settings64.sh"
       loop:
         - "Vivado"
         - "Vitis_HLS"
@@ -24,8 +25,8 @@
       lineinfile:
         path: /etc/bash.bashrc
         insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
-        line: "source {{ amd_apm_tools_install_path }}/{{ program }}/{{ amd_apm_release }}/settings64.sh"
-        state: "{{ 'present' if amd_apm_tools_install_vitis|bool else 'absent' }}"
+        line: "source {{ amd_apm_tools_install_path }}/{{ program }}/{{ amd_apm_release.release }}/settings64.sh"
+        state: "{{ 'absent' if amd_apm_release.vivado_only|bool else 'present' }}"
       loop:
         - "Vitis"
         - "Model_Composer"
@@ -35,8 +36,48 @@
     - name: Add Vitis Model Composer to system-wide PATH
       lineinfile:
         path: /etc/bash.bashrc
-        line: 'export PATH={{ amd_apm_tools_install_path }}/Model_Composer/{{ amd_apm_release }}/bin:$PATH'
-        state: "{{ 'present' if amd_apm_tools_install_vitis|bool else 'absent' }}"
+        line: 'export PATH={{ amd_apm_tools_install_path }}/Model_Composer/{{ amd_apm_release.release }}/bin:$PATH'
+        state: "{{ 'absent' if amd_apm_release.vivado_only|bool else 'present' }}"
+
+- name: "[Install {{ amd_apm_release }}] Set bash environment (for releases 2025.1 and onwards)"
+  when:
+    - amd_apm_releases | length == 1
+    - amd_apm_tools_set_bash_environment_variables
+    - "{{ amd_apm_release.release.split('.')[0] | int }} >= 2025"
+  block:
+    #Vivado is always installed
+    #Vitis_HLS also comes with Vivado
+    - name: Add Vivado source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_apm_tools_install_path }}/{{ amd_apm_release.release }}/{{ program }}/settings64.sh"
+      loop:
+        - "Vivado"
+        - "Vitis_HLS"
+      loop_control:
+        loop_var: program
+
+    # Vitis is only installed, when install_vitis == true
+    # Model Composer comes with Vitis
+    - name: Add Vitis source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_apm_tools_install_path }}/{{ amd_apm_release.release }}/{{ program }}/settings64.sh"
+        state: "{{ 'absent' if amd_apm_release.vivado_only|bool else 'present' }}"
+      loop:
+        - "Vitis"
+        - "Model_Composer"
+      loop_control:
+        loop_var: program
+
+    - name: Add Vitis Model Composer to system-wide PATH
+      lineinfile:
+        path: /etc/bash.bashrc
+        line: 'export PATH={{ amd_apm_tools_install_path }}/{{ amd_apm_release.release }}/Model_Composer/bin:$PATH'
+        state: "{{ 'absent' if amd_apm_release.vivado_only|bool else 'present' }}"
+
 
 - name: "INFO: `set_bash_environment_variables: true` is ignored"
   debug:
