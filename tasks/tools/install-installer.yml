@@ -1,5 +1,9 @@
 ---
 
+##
+# Parameters:
+#   - `amd_apm_release`:        Object containing install info: release, vivado_only, update_level (required)
+
 # FACTS GATHERING
 
 - name: "[Install {{ amd_apm_release.release }}] Set Tools facts"
