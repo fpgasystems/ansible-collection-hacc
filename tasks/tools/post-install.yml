@@ -2,7 +2,7 @@
 
 - name: "[Install {{ amd_apm_release }}] Set bash environment (for  releases up to 2024.2)"
   when:
-    - amd_apm_releases | length == 1
+    - not more_than_one_release
     - amd_apm_tools_set_bash_environment_variables
     - "{{ amd_apm_release.release.split('.')[0] | int }} <= 2024"
   block:
@@ -41,7 +41,7 @@
 
 - name: "[Install {{ amd_apm_release }}] Set bash environment (for releases 2025.1 and onwards)"
   when:
-    - amd_apm_releases | length == 1
+    - not more_than_one_release
     - amd_apm_tools_set_bash_environment_variables
     - "{{ amd_apm_release.release.split('.')[0] | int }} >= 2025"
   block:
@@ -83,5 +83,5 @@
   debug:
     msg: "amd_apm_tools_set_bash_environment_variables is set to true, but this is ignored as there are more than one releases defined in the amd_apm_releases variable. Only one version can be actived at a time. Use a tool like `hdev` or `module` to manage multiple versions."
   when:
-    - (amd_apm_releases|length) > 1
+    - more_than_one_release
     - amd_apm_tools_set_bash_environment_variables
