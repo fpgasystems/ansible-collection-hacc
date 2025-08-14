@@ -104,12 +104,11 @@
     path: "{{ amd_apm_tools_install_path }}"
     state: directory
 
-- name: "[Install {{ amd_apm_release.release }}] Ensure /root/.Xilinx directory exists"
+- name: "[Install {{ amd_apm_release.release }}] Ensure config directory exists for the {{ amd_apm_release.release }} release"
   ansible.builtin.file:
-    path: /root/.Xilinx
+    path: "/root/.Xilinx/{{ amd_apm_release.release }}"
     state: directory
 
-# TODO: add configs to a version directory: eg. /root/.Xilinx/2024.2/install_config.txt
 - name: "[Install {{ amd_apm_release.release }}] Generate AMD tools configuration file"
   expect:
     command: "{{ amd_apm_tools_installer }} --nox11 -- --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_release.vivado_only %}Vivado{% else %}Vitis{% endif %}'"
@@ -117,10 +116,16 @@
       "Please choose: ":
         - "1"
 
+- name: "[Install {{ amd_apm_release.release }}] Copy install_config to release directory"
+  copy:
+    src: /root/.Xilinx/install_config.txt
+    dest: "/root/.Xilinx/{{ amd_apm_release.release }}/install_config.txt"
+    remote_src: True
+
 - name: "[Install {{ amd_apm_release.release }}] Edit install config"
   include_tasks: edit-install-config.yml
   vars:
-    config_path: "/root/.Xilinx/install_config.txt"
+    config_path: "/root/.Xilinx/{{ amd_apm_release.release }}/install_config.txt"
     enable_desktop_icons: amd_apm_tools_enable_desktop_icons
 
 - name: "[Install {{ amd_apm_release.release }}] Install Tools (this usually takes about 2 hours, but can take up to 6 hours...)"
