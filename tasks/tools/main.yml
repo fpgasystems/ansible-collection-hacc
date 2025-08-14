@@ -1,27 +1,5 @@
 ---
 
-# TODO: do this checking on the main level
-# Normalizing refers to filling in all attributes with defaults for the ones that were not set by the user
-- name: Normalize amd_apm_releases variable
-  set_fact:
-    amd_apm_releases_normalized: "{{ amd_apm_releases | map('normalize_releases_list') | list }}"
-
-- name: Assert that the normalized releases list is as long as the user entered list
-  assert:
-    that: amd_apm_releases | length == amd_apm_releases_normalized | length
-
-- name: Assert that there are no duplicate releases in the amd_apm_releases variable
-  assert:
-    that: (amd_apm_releases_normalized | map(attribute='release') | list | unique | length) == (amd_apm_releases_normalized | length)
-    fail_msg: "Multiple definitions of the same release detected in the amd_apm_releases variable! Please only define a release once."
-
-# TODO: check this on a per release object level, maybe even check it in the filter
-#- name: Assert that a valid install method for the tools is selected
-#  assert:
-#    that: amd_apm_tools_install_method in ["installer", "zip"]
-#    fail_msg: "Invalid value for amd_apm_tools_install_method. Must be either 'installer' or 'zip'."
-
-
 # DETERMINE WHAT NEEDS TO BE DONE
 
 - name: Determine what needs to be done

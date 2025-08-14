@@ -1,19 +1,41 @@
 ---
 
+# LOAD VARIABLES
+
 - name: "Load the amd packages dictionary for the target distribution"
   include_vars: "amd-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+
+
+# USER INPUT VALIDATION
+
+# Normalizing refers to filling in all attributes with defaults for the ones that were not set by the user
+- name: Normalize amd_apm_releases variable
+  set_fact:
+    amd_apm_releases_normalized: "{{ amd_apm_releases | map('normalize_releases_list') | list }}"
+
+- name: Assert that the normalized releases list is as long as the user entered list
+  assert:
+    that: amd_apm_releases | length == amd_apm_releases_normalized | length
+
+- name: Assert that there are no duplicate releases in the amd_apm_releases variable
+  assert:
+    that: (amd_apm_releases_normalized | map(attribute='release') | list | unique | length) == (amd_apm_releases_normalized | length)
+    fail_msg: "Multiple definitions of the same release detected in the amd_apm_releases variable! Please define each release only once."
 
 # 1) Check if components are installed of other version than specified by variable.
 #   - if other version installed, then remove and clean up
 
-# 2) Install XRT
+# 2) Install AMD toolchain (Vitis/Vivado)
+- include_tasks: ./tools/main.yml
+
+# 3) Install XRT
 # TODO: make xrt support multi version installs
 #- include_tasks: ./xrt.yml
 #  vars:
 #    amd_apm_release: "{{ item }}"
 #  loop: "{{ amd_apm_releases }}"
 
-# 3) Install deployement targets
+# 4) Install deployement targets
 # TODO: create deployment targets tasks
 #- set_fact:
 #    xilinx_deployment_package_name:
@@ -27,7 +49,7 @@
 #    state: present
 #  loop: "{{ xilinx_deployment_package_name }}"
 
-# 4) Install development targets
+# 5) Install development targets
 # TODO: create development targets tasks
 #- set_fact:
 #    xilinx_development_package_name:
@@ -38,7 +60,5 @@
 #    state: present
 #  loop: "{{ xilinx_development_package_name }}"
 
-# 5) Install AMD toolchain
-- include_tasks: ./tools/main.yml
 
 # 6) Install Vitis AI (optional)
