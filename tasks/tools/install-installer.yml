@@ -1,19 +1,18 @@
 ---
 
-- name: "[Install {{ amd_apm_release }}] Set AMD Toolchain update level"
-  ansible.builtin.set_fact:
-    amd_apm_tools_update_level: 'base'
+# FACTS GATHERING
 
-- name: "[Install {{ amd_apm_release }}] Set Tools facts"
+- name: "[Install {{ amd_apm_release.release }}] Set Tools facts"
   ansible.builtin.set_fact:
-    amd_apm_tools_installer_bin: "{{ amd_apm_packages[amd_apm_release]['tools']['installer'][amd_apm_tools_update_level]['bin'] }}"
-    amd_apm_tools_installer_checksum: "{{ amd_apm_packages[amd_apm_release]['tools']['installer'][amd_apm_tools_update_level]['checksum_md5'] }}"
+    amd_apm_tools_installer_bin: "{{ amd_apm_packages[amd_apm_release.release]['tools']['installer'][amd_apm_release.update_level]['bin'] }}"
+    amd_apm_tools_installer_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['installer'][amd_apm_release.update_level]['checksum_md5'] }}"
+    amd_apm_tools_prerequisites: "{{ amd_apm_packages[amd_apm_release.release]['tools']['prerequisites'] }}"
 
-- name: "[Install {{ amd_apm_release }}] Set Tools installer path fact"
+- name: "[Install {{ amd_apm_release.release }}] Set Tools installer path fact"
   ansible.builtin.set_fact:
-    amd_apm_tools_installer: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release }}/{{ amd_apm_tools_installer_bin }}"
+    amd_apm_tools_installer: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release.release }}/{{ amd_apm_tools_installer_bin }}"
 
-- name: "[Install {{ amd_apm_release }}] Assert that user_email and user_password are set for AMD installer tool"
+- name: "[Install {{ amd_apm_release.release }}] Assert that user_email and user_password are set for AMD installer tool"
   assert:
     that:
       - amd_apm_user_email is not none
@@ -23,48 +22,54 @@
       - amd_apm_user_password is string
     fail_msg: "Either or both `amd_apm_user_email` and `amd_apm_user_password` have not been set. 'amd_apm_user_email' must be a valid email address (e.g., user@example.com)."
 
-- name: "[Install {{ amd_apm_release }}] Gather stats about Tools installer"
+
+# PREPARE INSTALLER
+
+- name: "[Install {{ amd_apm_release.release }}] Gather stats about Tools installer"
   stat:
     path: "{{ amd_apm_tools_installer }}"
     checksum_algorithm: md5
     get_checksum: True
   register: amd_apm_tools_installer_stats
 
-- name: "[Install {{ amd_apm_release }}] Assert that the installer is available"
+- name: "[Install {{ amd_apm_release.release }}] Assert that the installer is available"
   assert:
     that:
       - amd_apm_tools_installer_stats.stat.exists
-      - amd_apm_tools_installer_stats.stat.checksum == amd_apm_tools_installer_checksum
     fail_msg: "[ERROR] Can't find the AMD tools installer: {{ amd_apm_tools_installer }}. Please download it from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html"
 
-- name: "[Install {{ amd_apm_release }}] Set permissions of installer to allow execution"
+- name: "[Install {{ amd_apm_release.release }}] Assert that the checksum of the installer is correct"
+  assert:
+    that:
+      - amd_apm_tools_installer_stats.stat.checksum == amd_apm_tools_installer_checksum
+    fail_msg: "[ERROR] Checksum of the installer is incorrect: {{ amd_apm_tools_installer }}. The file might have been tampered with. Please download the correct version from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html"
+
+- name: "[Install {{ amd_apm_release.release }}] Set permissions of installer to allow execution"
   file:
     path: "{{ amd_apm_tools_installer }}"
     mode: 755
 
-- name: "[Install {{ amd_apm_release }}] Ensure Vitis install directory exists"
-  ansible.builtin.file:
-    path: "{{ amd_apm_tools_install_path }}"
-    state: directory
 
-- name: "[Install {{ amd_apm_release }}] Check AMD authentication key file stats"
+# AMD AUTHENTICATION
+
+- name: "[Install {{ amd_apm_release.release }}] Check AMD authentication key file stats"
   stat:
     path: "/root/.Xilinx/wi_authentication_key"
   register: amd_apm_installer_auth_file_stats
 
-- name: "[Install {{ amd_apm_release }}] Set auth_valid default to whether the auth file exists"
+- name: "[Install {{ amd_apm_release.release }}] Set auth_valid default to whether the auth file exists"
   set_fact:
     amd_apm_installer_auth_valid: "{{ amd_apm_installer_auth_file_stats.stat.exists and amd_apm_installer_auth_file_stats.stat.mode == '0400' }}"
 
-- name: "[Install {{ amd_apm_release }}] Read and validate authentication data"
+- name: "[Install {{ amd_apm_release.release }}] Read and validate authentication data"
   when: amd_apm_installer_auth_valid
   block:
-    - name: "[Install {{ amd_apm_release }}] Get authentication file contents"
+    - name: "[Install {{ amd_apm_release.release }}] Get authentication file contents"
       slurp:
         src: /root/.Xilinx/wi_authentication_key
       register: amd_apm_installer_auth_data
 
-    - name: "[Install {{ amd_apm_release }}] Parse authentication file and check whether it is valid for specified user"
+    - name: "[Install {{ amd_apm_release.release }}] Parse authentication file and check whether it is valid for specified user"
       set_fact:
         amd_apm_installer_auth_valid: "{{
           (amd_apm_installer_auth_data['content'] | b64decode | from_json)['username'] == amd_apm_user_email
@@ -72,11 +77,11 @@
           ((((amd_apm_installer_auth_data['content'] | b64decode | from_json)['expiration'] | replace('\\/', '/') | to_datetime('%m/%d/%Y %I:%M %p')) - (ansible_date_time.iso8601 | to_datetime('%Y-%m-%dT%H:%M:%SZ'))).total_seconds() > 3600)
           }}"
   rescue:
-    - name: "[Install {{ amd_apm_release }}] Handle AMD authentication file parsing errors"
+    - name: "[Install {{ amd_apm_release.release }}] Handle AMD authentication file parsing errors"
       set_fact:
         amd_apm_installer_auth_valid: false
 
-- name: "[Install {{ amd_apm_release }}] Generate AMD Auth token"
+- name: "[Install {{ amd_apm_release.release }}] Generate AMD Auth token"
   expect:
     command: "{{ amd_apm_tools_installer }} --nox11 -- --batch AuthTokenGen"
     responses:
@@ -86,14 +91,34 @@
         - "{{ amd_apm_user_password }}"
   when: not amd_apm_installer_auth_valid
 
-- name: "[Install {{ amd_apm_release }}] Generate AMD tools configuration file"
+
+# INSTALL
+
+- name: "[Install {{ amd_apm_release.release }}] Install prerequisite packages"
+  package:
+    name: amd_apm_tools_prerequisites
+    state: present
+
+- name: "[Install {{ amd_apm_release.release }}] Ensure Vitis install directory exists"
+  ansible.builtin.file:
+    path: "{{ amd_apm_tools_install_path }}"
+    state: directory
+
+- name: "[Install {{ amd_apm_release.release }}] Ensure /root/.Xilinx directory exists"
+  ansible.builtin.file:
+    path: /root/.Xilinx
+    state: directory
+
+# TODO: add configs to a version directory: eg. /root/.Xilinx/2024.2/install_config.txt
+- name: "[Install {{ amd_apm_release.release }}] Generate AMD tools configuration file"
   expect:
-    command: "{{ amd_apm_tools_installer }} --nox11 -- --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_tools_install_vitis %}Vitis{% else %}Vivado{% endif %}'"
+    command: "{{ amd_apm_tools_installer }} --nox11 -- --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_release.vivado_only %}Vivado{% else %}Vitis{% endif %}'"
     responses:
       "Please choose: ":
         - "1"
 
-- name: "[Install {{ amd_apm_release }}] Disable shortcut creation"
+# TODO: move config editing to seperate tasks file and reuse with other install tasks
+- name: "[Install {{ amd_apm_release.release }}] Disable shortcut creation"
   lineinfile:
     path: /root/.Xilinx/install_config.txt
     regexp: "{{ item.regexp }}"
@@ -104,10 +129,41 @@
     - { regexp: '^CreateDesktopShortcuts=', line: 'CreateDesktopShortcuts=0' }
     - { regexp: '^CreateFileAssociation=', line: 'CreateFileAssociation=0' }
 
-- name: "[Install {{ amd_apm_release }}] Install Tools (this can take up to 6 hours...)"
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# SELECTING DEVICES TO INSTALL
+# TODO: Make this more specific instead of installing all devices: allow for a selection
+
+- name: Read the file content
+  ansible.builtin.slurp:
+    src: /root/.Xilinx/install_config.txt
+  register: file_content
+
+- name: Extract the Modules= line
+  set_fact:
+    modules_line: "{{ (file_content.content | b64decode).splitlines() | select('match', '^Modules=') | list | first }}"
+
+- name: Extract module entries
+  set_fact:
+    module_entries: "{{ modules_line.split('=', 1)[1].split(',') }}"
+
+- name: Normalize module entries to end with :1
+  set_fact:
+    normalized_modules: "{{ module_entries | map('regex_replace', ':(\\d+)$', ':1') | list }}"
+
+- name: Rebuild the line
+  set_fact:
+    new_modules_line: "Modules={{ normalized_modules | join(',') }}"
+
+- name: Replace the Modules= line in the file
+  ansible.builtin.lineinfile:
+    path: /root/.Xilinx/install_config.txt
+    regexp: '^Modules='
+    line: "{{ new_modules_line }}"
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+- name: "[Install {{ amd_apm_release.release }}] Install Tools (this usually takes about 2 hours, but can take up to 6 hours...)"
   command: "{{ amd_apm_tools_installer }} --nox11 -- --batch Install --config /root/.Xilinx/install_config.txt --agree XilinxEULA,3rdPartyEULA"
-  args:
-    creates: "{{ amd_apm_tools_install_path }}/Vivado/{{ amd_apm_release }}"
   vars:
     # wait up to 6 hours
     ansible_command_timout: 21600
