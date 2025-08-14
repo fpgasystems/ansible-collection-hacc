@@ -1,0 +1,48 @@
+---
+
+##
+# Parameters:
+#   - `config_path`:              Full path to the install config to edit (required)
+#   - `enable_desktop_icons`:     Boolean indicating wheter desktop icons need to be installed (default: False)
+
+- name: "[Edit config] Disable shortcut creation"
+  lineinfile:
+    path: "{{ config_path }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line  }}"
+  loop:
+    - { regexp: '^CreateProgramGroupShortcuts=', line: 'CreateProgramGroupShortcuts={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}' }
+    - { regexp: '^CreateDesktopShortcuts=', line: 'CreateDesktopShortcuts={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}' }
+    - { regexp: '^CreateShortcutsForAllUsers=', line: 'CreateShortcutsForAllUsers={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}' }
+    - { regexp: '^CreateFileAssociation=', line: 'CreateFileAssociation={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}' }
+
+
+# SELECT MODULES TO INSTALL
+# TODO: Make this more specific instead of installing all devices: allow for a selection
+
+- name: "[Edit config] Read the file content"
+  ansible.builtin.slurp:
+    src: "{{ config_path }}"
+  register: file_content
+
+- name: "[Edit config] Extract the Modules= line"
+  set_fact:
+    modules_line: "{{ (file_content.content | b64decode).splitlines() | select('match', '^Modules=') | list | first }}"
+
+- name: "[Edit config] Extract module entries"
+  set_fact:
+    module_entries: "{{ modules_line.split('=', 1)[1].split(',') }}"
+
+- name: "[Edit config] Normalize module entries to end with :1"
+  set_fact:
+    normalized_modules: "{{ module_entries | map('regex_replace', ':(\\d+)$', ':1') | list }}"
+
+- name: "[Edit config] Rebuild the line"
+  set_fact:
+    new_modules_line: "Modules={{ normalized_modules | join(',') }}"
+
+- name: "[Edit config] Replace the Modules= line in the file"
+  ansible.builtin.lineinfile:
+    path: "{{ config_path }}"
+    regexp: '^Modules='
+    line: "{{ new_modules_line }}"

@@ -102,50 +102,11 @@
   args:
     chdir: "{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}"
 
-# TODO: move config editing to seperate tasks file and reuse with other install tasks
-- name: "[Install {{ amd_apm_release.release }}] Disable shortcut creation"
-  lineinfile:
-    path: /root/.Xilinx/install_config.txt
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line  }}"
-  loop:
-    - { regexp: '^CreateProgramGroupShortcuts=', line: 'CreateProgramGroupShortcuts=0' }
-    - { regexp: '^CreateShortcutsForAllUsers=', line: 'CreateShortcutsForAllUsers=0' }
-    - { regexp: '^CreateDesktopShortcuts=', line: 'CreateDesktopShortcuts=0' }
-    - { regexp: '^CreateFileAssociation=', line: 'CreateFileAssociation=0' }
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# SELECTING DEVICES TO INSTALL
-# TODO: Make this more specific instead of installing all devices: allow for a selection
-
-- name: Read the file content
-  ansible.builtin.slurp:
-    src: /root/.Xilinx/install_config.txt
-  register: file_content
-
-- name: Extract the Modules= line
-  set_fact:
-    modules_line: "{{ (file_content.content | b64decode).splitlines() | select('match', '^Modules=') | list | first }}"
-
-- name: Extract module entries
-  set_fact:
-    module_entries: "{{ modules_line.split('=', 1)[1].split(',') }}"
-
-- name: Normalize module entries to end with :1
-  set_fact:
-    normalized_modules: "{{ module_entries | map('regex_replace', ':(\\d+)$', ':1') | list }}"
-
-- name: Rebuild the line
-  set_fact:
-    new_modules_line: "Modules={{ normalized_modules | join(',') }}"
-
-- name: Replace the Modules= line in the file
-  ansible.builtin.lineinfile:
-    path: /root/.Xilinx/install_config.txt
-    regexp: '^Modules='
-    line: "{{ new_modules_line }}"
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+- name: "[Install {{ amd_apm_release.release }}] Edit install config"
+  include_tasks: edit-install-config.yml
+  vars:
+    config_path: "/root/.Xilinx/install_config.txt"
+    enable_desktop_icons: amd_apm_tools_enable_desktop_icons
 
 - name: "[Install {{ amd_apm_release.release }}] Install tools (this usually takes about 2 hours, but can take up to 6 hours...)"
   command: "./xsetup --batch Install --config /root/.Xilinx/install_config.txt --agree XilinxEULA,3rdPartyEULA"
