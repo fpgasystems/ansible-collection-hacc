@@ -1,112 +1,109 @@
 ---
 
-- name: "[Install {{ amd_apm_release }}] Set AMD Toolchain update level"
-  ansible.builtin.set_fact:
-    amd_apm_tools_update_level: 'base'
+# FACTS GATHERING
 
-- name: "[Install {{ amd_apm_release }}] Set AMD Toolchain facts"
+- name: "[Install {{ amd_apm_release.release }}] Set AMD Toolchain facts"
   ansible.builtin.set_fact:
-    amd_apm_tools_download_url: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['url'] }}"
-    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['package'] }}"
-    amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['extention'] }}"
-    amd_apm_tools_zip_checksum: "{{ amd_apm_packages[amd_apm_release]['tools']['zip'][amd_apm_tools_update_level]['checksum_md5'] }}"
-    amd_apm_tools_prerequisites: "{{ amd_apm_packages[amd_apm_release]['tools']['prerequisites'] }}"
+    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release.release]['tools']['zip'][amd_apm_release.update_level]['package'] }}"
+    amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release.release]['tools']['zip'][amd_apm_release.update_level]['extention'] }}"
+    amd_apm_tools_zip_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['zip'][amd_apm_release.update_level]['checksum_md5'] }}"
+    amd_apm_tools_prerequisites: "{{ amd_apm_packages[amd_apm_release.release]['tools']['prerequisites'] }}"
 
-- name: "[Install {{ amd_apm_release }}] Set archive name fact"
+- name: "[Install {{ amd_apm_release.release }}] Set archive name fact"
   ansible.builtin.set_fact:
     amd_apm_tools_archive: "{{ amd_apm_tools_package }}{{ amd_apm_tools_archive_extention }}"
 
-- name: "[Install {{ amd_apm_release }}] Set tools archive extraction path"
+- name: "[Install {{ amd_apm_release.release }}] Set tools archive extraction path"
   ansible.builtin.set_fact:
-    amd_apm_tools_extraction_path: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release }}"
-    amd_apm_tools_archive_path: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release }}/{{ amd_apm_tools_archive }}"
+    amd_apm_tools_extraction_path: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release.release }}"
+    amd_apm_tools_archive_path: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release.release }}/{{ amd_apm_tools_archive }}"
 
-- name: "[Install {{ amd_apm_release }}] Check if the tools archive has already been extracted"
+
+# CHECK ARCHIVE
+
+- name: "[Install {{ amd_apm_release.release }}] Check if the tools archive has already been extracted"
   stat:
     path: "{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}"
   register: amd_apm_tools_extraction_stats
 
-- name: "[Install {{ amd_apm_release }}] Check if the tools archive has already been downloaded"
-  stat:
-    path: "{{ amd_apm_tools_archive_path }}"
-    checksum_algorithm: md5
-    get_checksum: True
-  register: amd_apm_tools_archive_stats
-  when:
-    - not amd_apm_tools_extraction_stats.stat.exists
-
-
-- name: "[Install {{ amd_apm_release }}] Assert that the zip is available"
-  assert:
-    that:
-      - amd_apm_tools_archive_stats.stat.exists
-      - amd_apm_tools_archive_stats.stat.checksum == amd_apm_tools_zip_checksum
-    fail_msg: "[ERROR] {% if not amd_apm_tools_archive_stats.stat.exists %}Can't find the AMD tools zip: {{amd_apm_tools_download_path}}/{{ amd_apm_release }}/{{ amd_apm_tools_archive }}. Please download it from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html{% else %}Checksum of zip file does not correspond to expected md5checksum. The file might have been tampered with.{% endif %}"
-  when:
-    - not amd_apm_tools_extraction_stats.stat.exists
-
 - debug:
-    msg: "Archive precense assertion has been skipped, because the tools have already been extracted. Allowing users to remove the archive if desired."
+    msg: "[INFO] Archive precense assertions will be skipped, because the tools have already been extracted. Allowing users to remove the archive if desired."
   when: amd_apm_tools_extraction_stats.stat.exists
 
+- name: "[Install {{ amd_apm_release.release }}] Extraction directory does not yet exist"
+  when: not amd_apm_tools_extraction_stats.stat.exists
+  block:
+    - name: "[Install {{ amd_apm_release.release }}] Check if the tools archive has already been downloaded"
+      stat:
+        path: "{{ amd_apm_tools_archive_path }}"
+        checksum_algorithm: md5
+        get_checksum: True
+      register: amd_apm_tools_archive_stats
+
+    - name: "[Install {{ amd_apm_release.release }}] Assert that the zip is available"
+      assert:
+        that:
+          - amd_apm_tools_archive_stats.stat.exists
+        fail_msg: "[ERROR] Can't find the AMD tools zip: {{ amd_apm_tools_archive_path }}. Please download it from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html"
+
+    - name: "[Install {{ amd_apm_release.release }}] Assert that the checksum of the zip is correct"
+      assert:
+        that:
+          - amd_apm_tools_archive_stats.stat.checksum == amd_apm_tools_zip_checksum
+        fail_msg: "[ERROR] Checksum of zip file does not correspond to expected md5 checksum: {{ amd_apm_tools_archive_path }}. The file might have been tampered with. Please download the correct version from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html"
+
+
 # EXTRACTION
-# runs when:
-#   - tools archive has not been extracted
+
+- debug:
+    msg: "[INFO] Extraction will be skipped, because the tools have already been extracted. If you want to redo the extraction, make sure that the archive `{{ amd_apm_tools_archive_path }}` exists, and the extracted archive at location `{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}` is deleted."
+  when: amd_apm_tools_extraction_stats.stat.exists
+
 - when:
     - not amd_apm_tools_extraction_stats.stat.exists
   block:
-  - name: "[Install {{ amd_apm_release }}] Ensure Vitis archive extraction directory exists"
-    ansible.builtin.file:
-      path: "{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}"
-      state: directory
+    - name: "[Install {{ amd_apm_release.release }}] Ensure Vitis archive extraction directory exists"
+      ansible.builtin.file:
+        path: "{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}"
+        state: directory
 
-  - name: "[Install {{ amd_apm_release }}] Extract Vitis core archive (100+ GB file, may take a while...)"
-    unarchive:
-      src: "{{ amd_apm_tools_archive_path }}"
-      dest: "{{ amd_apm_tools_extraction_path }}"
-      remote_src: yes
-      extra_opts: "--no-same-owner"
-
-- debug:
-    msg: "Extraction has been skipped, because the tools have already been extracted. If you want to redo the extraction, make sure that the archive at location `{{ amd_apm_tools_download_path }}/{{ amd_apm_tools_archive }}` exists, and the extracted archive at location `{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}` is deleted."
-  when: amd_apm_tools_extraction_stats.stat.exists
-
+    - name: "[Install {{ amd_apm_release.release }}] Extract Vitis core archive (100+ GB file, may take a while...)"
+      unarchive:
+        src: "{{ amd_apm_tools_archive_path }}"
+        dest: "{{ amd_apm_tools_extraction_path }}"
+        remote_src: yes
+        extra_opts: "--no-same-owner"
 
 
 # INSTALL
 
-#- name: "[Install {{ amd_apm_release }}] Install necessary libraries"
-#  command: "./installLibs.sh"
-#  args:
-#    chdir: "{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}"
-
-- name: "[Install {{ amd_apm_release }}] Install prerequisite packages"
+- name: "[Install {{ amd_apm_release.release }}] Install prerequisite packages"
   package:
     name: amd_apm_tools_prerequisites
     state: present
 
-
-- name: "[Install {{ amd_apm_release }}] Ensure Vitis install directory exists"
+- name: "[Install {{ amd_apm_release.release }}] Ensure Vitis install directory exists"
   ansible.builtin.file:
     path: "{{ amd_apm_tools_install_path }}"
     state: directory
 
-- name: "[Install {{ amd_apm_release }}] Ensure /root/.Xilinx directory exists"
+- name: "[Install {{ amd_apm_release.release }}] Ensure /root/.Xilinx directory exists"
   ansible.builtin.file:
     path: /root/.Xilinx
     state: directory
 
 # TODO: add configs to a version directory: eg. /root/.Xilinx/2024.2/install_config.txt
-- name: "[Install {{ amd_apm_release }}] Generate AMD tools configuration file"
+- name: "[Install {{ amd_apm_release.release }}] Generate AMD tools configuration file"
   expect:
-    command: "./xsetup --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_tools_install_vitis %}Vitis{% else %}Vivado{% endif %}'"
+    command: "./xsetup --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_release.vivado_only %}Vivado{% else %}Vitis{% endif %}'"
     responses:
       "Please choose: ":
         - "1"
   args:
     chdir: "{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}"
 
-- name: "[Install {{ amd_apm_release }}] Disable shortcut creation"
+# TODO: move config editing to seperate tasks file and reuse with other install tasks
+- name: "[Install {{ amd_apm_release.release }}] Disable shortcut creation"
   lineinfile:
     path: /root/.Xilinx/install_config.txt
     regexp: "{{ item.regexp }}"
@@ -150,7 +147,7 @@
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-- name: "[Install {{ amd_apm_release }}] Install tools (this can take up to 6 hours...)"
+- name: "[Install {{ amd_apm_release.release }}] Install tools (this usually takes about 2 hours, but can take up to 6 hours...)"
   command: "./xsetup --batch Install --config /root/.Xilinx/install_config.txt --agree XilinxEULA,3rdPartyEULA"
   args:
     chdir: "{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}"
@@ -158,5 +155,4 @@
     # wait up to 6 hours
     ansible_command_timout: 21600
     ansible_ssh_timout: 21600
-
 
