@@ -1,0 +1,83 @@
+---
+
+- name: "[XRT] Set general XRT path facts"
+  set_fact:
+    amd_apm_xrt_install_path: "{{ amd_apm_runtime_install_path }}/xrt"
+    amd_apm_xrt_download_path: "{{ amd_apm_download_path }}/xrt"
+
+# DETERMINE WHAT NEEDS TO BE DONE
+
+- name: "[XRT] Gather directories of currently installed XRT releases"
+  find:
+    paths:
+      - "{{ amd_apm_xrt_install_path }}"
+    file_type: directory
+  register: found_xrt_dirs
+
+- name: "[XRT] Determine for which releases XRT is already present"
+  set_fact:
+    releases_with_xrt_dir_present: >-
+      {{
+        found_xrt_dirs.files
+        | map(attribute='path')
+        | select("match", amd_apm_runtime_install_path + "/xrt/\d{4}\.\d"a)
+        | map('regex_search', '(\d{4}\.\d)')
+        | list
+        | unique
+      }}
+
+- name: "[XRT] Determine what to do for each release"
+  set_fact:
+    releases_to_install: >-
+      {{
+        amd_apm_releases_normalized
+        | selectattr('install_runtime', 'eq', 'True')
+        | rejectattr('release', 'in', releases_with_xrt_dir_present)
+        | map(attribute='release')
+        | list
+      }}
+    releases_to_uninstall: >-
+      {{
+        amd_apm_releases_normalized
+        | selectattr('install_runtime', 'eq', 'False')
+        | map(attribute='release')
+        | list
+      }}
+    releases_already_correct: >-
+      {{
+        amd_apm_releases_normalized
+        | selectattr('install_runtime', 'eq', 'True')
+        | selectattr('release', 'in', releases_with_xrt_dir_present)
+        | map(attribute='release')
+        | list
+      }}
+
+
+# REMOVE
+
+- name: "[XRT] Uninstall XRT releases"
+  file:
+    path: "{{ amd_apm_xrt_install_path }}/{{ release }}"
+    state: absent
+  loop: "{{ releases_to_uninstall }}"
+  loop_control:
+    loop_var: release
+
+- name: "[XRT] Remove XRT setup script to global .bashrc"
+  ansible.builtin.lineinfile:
+    path: /etc/bash.bashrc
+    line: "source {{ amd_apm_xrt_install_path }}/{{ release }}/opt/xilinx/xrt/setup.sh"
+    state: absent
+  loop: "{{ releases_to_uninstall }}"
+  loop_control:
+    loop_var: release
+
+# INSTALL
+
+- name: "[XRT] Install AMD XRT Runtime"
+  include_tasks: ./xrt/install.yml
+  loop: "{{ amd_apm_releases_normalized | selectattr('release', 'in', releases_to_install) }}"
+  loop_control:
+    loop_var: amd_apm_release
+  vars:
+    more_than_one_release: (releases_to_install + releases_already_correct) | length > 1

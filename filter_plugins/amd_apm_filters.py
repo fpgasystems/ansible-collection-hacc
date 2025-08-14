@@ -16,7 +16,8 @@ class FilterModule(object):
         VALID_INSTALL_METHODS = ['zip', 'installer']
         VALID_STATES = ['present', 'absent']
         VALID_UPDATE_LEVELS = ['base', 'update1', 'update2']
-        VALID_VIVADO_ONLY_VALUES = [True, False]
+        VALID_VIVADO_ONLY_VALUES = [False, True]
+        VALID_INSTALL_RUNTIME_VALUES = [True, False]
 
 
         def validate_release_format(release):
@@ -32,7 +33,8 @@ class FilterModule(object):
                 'install_method': 'zip',
                 'state': 'present',
                 'update_level': 'base',
-                'vivado_only': False
+                'vivado_only': False,
+                'install_runtime': True
             }
         elif isinstance(item, dict):
             if 'release' not in item:
@@ -65,12 +67,19 @@ class FilterModule(object):
                     f"Invalid 'vivado_only': '{vivado_only}'. Must be a boolean (True or False)"
                 )
 
+            install_runtime = item.get('install_runtime', True)
+            if install_runtime not in VALID_INSTALL_RUNTIME_VALUES:
+                raise AnsibleFilterError(
+                    f"Invalid 'install_runtime': '{install_runtime}'. Must be a boolean (True or False)"
+                )
+
             return {
                 'release': release,
                 'install_method': install_method,
                 'state': state,
                 'update_level': update_level,
-                'vivado_only': vivado_only
+                'vivado_only': vivado_only,
+                'install_runtime': install_runtime
             }
 
         else:

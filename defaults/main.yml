@@ -2,9 +2,11 @@
 
 amd_apm_releases: []
 
-amd_apm_xrt_install_path: /opt/amd
+amd_apm_runtime_install_path: /opt/amd
 amd_apm_tools_install_path: /tools/amd
 amd_apm_download_path: /opt/amd/downloads
+
+amd_apm_runtime_set_bash_environment_variables: True
 
 amd_apm_tools_set_bash_environment_variables: True
 amd_apm_tools_uninstall_dangling_releases: False

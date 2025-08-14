@@ -28,12 +28,10 @@
 # 2) Install AMD toolchain (Vitis/Vivado)
 - include_tasks: ./tools/main.yml
 
-# 3) Install XRT
-# TODO: make xrt support multi version installs
-#- include_tasks: ./xrt.yml
-#  vars:
-#    amd_apm_release: "{{ item }}"
-#  loop: "{{ amd_apm_releases }}"
+# 3) Install Runtime (XRT/AVED)
+# TODO: Create AVED install tasks
+# TODO: Create logic to select XRT or AVED (can't be installed at the same time). Use devices list to check if v80?
+- include_tasks: ./runtime/xrt.yml
 
 # 4) Install deployement targets
 # TODO: create deployment targets tasks
