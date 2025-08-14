@@ -8,9 +8,9 @@
 
 # REMOVE
 
-- name: Uninstall Vitis/Vivado releases with state absent
+- name: Uninstall Vitis/Vivado releases
   include_tasks: ./uninstall.yml
-  loop: "{{ releases_to_uninstall + releases_to_reinstall }}"
+  loop: "{{ releases_to_uninstall }}"
   loop_control:
     loop_var: amd_apm_release
 
@@ -30,14 +30,14 @@
 
 - name: Install AMD Toolchain
   include_tasks: "./install-{{ amd_apm_release.install_method }}.yml"
-  loop: "{{ amd_apm_releases_normalized | selectattr('release', 'in', releases_to_install + releases_to_reinstall) }}"
+  loop: "{{ amd_apm_releases_normalized | selectattr('release', 'in', releases_to_install ) }}"
   loop_control:
     loop_var: amd_apm_release
 
 - name: Post installation tasks (set environment variables etc.)
   include_tasks: ./post-install.yml
-  loop: "{{ amd_apm_releases_normalized | selectattr('release', 'in', releases_to_install + releases_to_reinstall) }}"
+  loop: "{{ amd_apm_releases_normalized | selectattr('release', 'in', releases_to_install ) }}"
   loop_control:
     loop_var: amd_apm_release
   vars:
-    more_than_one_release: (releases_to_install + releases_to_reinstall) | length > 1
+    more_than_one_release: (releases_to_install + releases_already_correct) | length > 1

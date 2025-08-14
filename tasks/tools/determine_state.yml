@@ -8,13 +8,13 @@
     use_regex: True
     recurse: True
     depth: 2
-  register: found_dirs
+  register: found_tools_dirs
 
-- name: Determine for which version Vivado and Vitis are already present
+- name: Determine for which releases Vivado and Vitis are already present
   set_fact:
     releases_with_vivado_dir_present: >-
       {{
-        found_dirs.files
+        found_tools_dirs.files
         | map(attribute='path')
         | select(
             "match",
@@ -27,7 +27,7 @@
       }}
     releases_with_vitis_dir_present: >-
       {{
-        found_dirs.files
+        found_tools_dirs.files
         | map(attribute='path')
         | select(
             "match",
@@ -94,6 +94,12 @@
           | list
         )
       }}
+
+- name: Add reinstall releases to both install and uninstall lists
+  set_fact:
+    releases_to_install: "releases_to_install + releases_to_reinstall"
+    releases_to_uninstall: "releases_to_uninstall + releases_to_reinstall"
+
 
 - name: Mark dangling Vitis/Vivado releases for removal
   when: amd_apm_tools_uninstall_dangling_releases
