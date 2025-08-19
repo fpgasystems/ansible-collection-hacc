@@ -24,10 +24,6 @@
 
 # INSTALL
 
-- name: Set AMD Toolchain path facts
-  ansible.builtin.set_fact:
-    amd_apm_tools_download_path: "{{ amd_apm_download_path }}/tools"
-
 - name: Install AMD Toolchain
   include_tasks: "./install-{{ amd_apm_release.install_method }}.yml"
   loop: "{{ amd_apm_releases_normalized | selectattr('release', 'in', releases_to_install ) }}"

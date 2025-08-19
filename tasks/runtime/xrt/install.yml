@@ -2,14 +2,13 @@
 
 - name: "[XRT {{ amd_apm_release.release }}] Set XRT package facts"
   ansible.builtin.set_fact:
-    amd_apm_xrt_download_url: "{{ amd_apm_packages[amd_apm_release.release]['runtime']['xrt']['url'] }}"
     amd_apm_xrt_package: "{{ amd_apm_packages[amd_apm_release.release]['runtime']['xrt']['package'] }}"
     amd_apm_xrt_checksum: "{{ amd_apm_packages[amd_apm_release.release]['runtime']['xrt']['checksum_sha256'] }}"
 
 - name: "[XRT {{ amd_apm_release.release }}] Set XRT release path facts"
   ansible.builtin.set_fact:
     amd_apm_xrt_release_install_path: "{{ amd_apm_xrt_install_path }}/{{ amd_apm_release.release }}"
-    amd_apm_xrt_package_path: "{{ amd_apm_xrt_download_path }}/{{ amd_apm_xrt_package }}"
+    amd_apm_xrt_package_path: "{{ amd_apm_download_path }}/{{ amd_apm_release.release }}/{{ amd_apm_xrt_package }}"
 
 
 # DOWNLOAD

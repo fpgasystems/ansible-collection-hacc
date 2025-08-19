@@ -19,8 +19,8 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Set tools archive extraction path"
   ansible.builtin.set_fact:
-    amd_apm_tools_extraction_path: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release.release }}"
-    amd_apm_tools_archive_path: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release.release }}/{{ amd_apm_tools_archive }}"
+    amd_apm_tools_extraction_path: "{{ amd_apm_download_path }}/{{ amd_apm_release.release }}"
+    amd_apm_tools_archive_path: "{{ amd_apm_download_path }}/{{ amd_apm_release.release }}/{{ amd_apm_tools_archive }}"
 
 
 # CHECK ARCHIVE

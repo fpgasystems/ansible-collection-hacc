@@ -3,7 +3,6 @@
 - name: "[XRT] Set general XRT path facts"
   set_fact:
     amd_apm_xrt_install_path: "{{ amd_apm_runtime_install_path }}/xrt"
-    amd_apm_xrt_download_path: "{{ amd_apm_download_path }}/xrt"
 
 # DETERMINE WHAT NEEDS TO BE DONE
 

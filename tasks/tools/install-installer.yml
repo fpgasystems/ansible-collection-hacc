@@ -14,7 +14,7 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Set Tools installer path fact"
   ansible.builtin.set_fact:
-    amd_apm_tools_installer: "{{ amd_apm_tools_download_path }}/{{ amd_apm_release.release }}/{{ amd_apm_tools_installer_bin }}"
+    amd_apm_tools_installer: "{{ amd_apm_download_path }}/{{ amd_apm_release.release }}/{{ amd_apm_tools_installer_bin }}"
 
 - name: "[Install {{ amd_apm_release.release }}] Assert that user_email and user_password are set for AMD installer tool"
   assert:
