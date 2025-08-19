@@ -98,7 +98,7 @@ The attributes `install_method`, `update_level` and `vivado_only` are irrelevant
 
 The `runtime` subsection contains options for the installation of the AMD Runtime (XRT, AVED).
 - `state` indicates if the specific release should have the runtime installed.
-- `type` indicates which runtime needs to be installed
+- `type` indicates which runtime needs to be installed (**Not yet implemented**)
 
 ```yaml
 amd_apm_releases:
@@ -111,7 +111,7 @@ amd_apm_download_path: /opt/amd/downloads
 ```
 This is the path where Ansible will look for downloaded assets from the AMD website, like the Toolchain install archive or installer, and the Runtime installers. As mentioned in [the requirements section](#Requirements), this directory needs to be populated with the installation files of the release that need to be installed by this role.
 
-TODO: if the file has not been found in the release dir, Ansible should also check if it is just in the root of the downloads path.
+> TODO: if the file has not been found in the release dir, Ansible should also check if it is just in the root of the downloads path as fallback.
 
 ```yaml
 amd_apm_devices: []
@@ -142,7 +142,7 @@ Boolean that defines whether the disk space check should be skipped. The disk sp
 ```yaml
 amd_apm_tools_enable_desktop_icons: False
 ```
-Boolean that defines whether desktop icons should be created of the installed tools (Not yet supported)
+Boolean that defines whether desktop icons should be created of the installed tools (**Not yet implemented**)
 
 ```yaml
 amd_apm_user_email: null
