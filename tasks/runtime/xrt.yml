@@ -20,7 +20,7 @@
       {{
         found_xrt_dirs.files
         | map(attribute='path')
-        | select("match", amd_apm_runtime_install_path + "/xrt/\d{4}\.\d"a)
+        | select("match", amd_apm_runtime_install_path + "/xrt/\d{4}\.\d")
         | map('regex_search', '(\d{4}\.\d)')
         | list
         | unique
@@ -31,7 +31,7 @@
     releases_to_install: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('install_runtime', 'eq', 'True')
+        | selectattr('install_runtime', 'eq', True)
         | rejectattr('release', 'in', releases_with_xrt_dir_present)
         | map(attribute='release')
         | list
@@ -39,18 +39,32 @@
     releases_to_uninstall: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('install_runtime', 'eq', 'False')
+        | selectattr('install_runtime', 'eq', False)
         | map(attribute='release')
         | list
       }}
     releases_already_correct: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('install_runtime', 'eq', 'True')
+        | selectattr('install_runtime', 'eq', True)
         | selectattr('release', 'in', releases_with_xrt_dir_present)
         | map(attribute='release')
         | list
       }}
+
+- name:
+  set_fact:
+    releases_to_uninstall: >-
+      {{
+        releases_to_uninstall + releases_with_xrt_dir_present | reject('in', releases_to_install + releases_already_correct) | list | unique
+      }}
+  when: amd_apm_runtime_uninstall_dangling_releases
+
+- debug:
+    msg: >-
+      releases already correct:   {{ releases_already_correct }}
+      releases to install:        {{ releases_to_install }}
+      releases to uninstall:      {{ releases_to_uninstall }}
 
 
 # REMOVE
@@ -80,4 +94,4 @@
   loop_control:
     loop_var: amd_apm_release
   vars:
-    more_than_one_release: (releases_to_install + releases_already_correct) | length > 1
+    more_than_one_release: "{{ (releases_to_install + releases_already_correct) | list | length > 1 }}"

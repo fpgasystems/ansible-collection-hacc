@@ -6,7 +6,7 @@
     amd_apm_tools_requested_disk_space_GB: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('release', 'in', release_to_install)
+        | selectattr('release', 'in', releases_to_install)
         | map(attribute='vivado_only')
         | map('ternary', 100, 300)
         | sum

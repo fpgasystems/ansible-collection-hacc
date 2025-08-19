@@ -97,8 +97,8 @@
 
 - name: Add reinstall releases to both install and uninstall lists
   set_fact:
-    releases_to_install: "releases_to_install + releases_to_reinstall"
-    releases_to_uninstall: "releases_to_uninstall + releases_to_reinstall"
+    releases_to_install: "{{ (releases_to_install + releases_to_reinstall) | list }}"
+    releases_to_uninstall: "{{ (releases_to_uninstall + releases_to_reinstall) | list }}"
 
 
 - name: Mark dangling Vitis/Vivado releases for removal
