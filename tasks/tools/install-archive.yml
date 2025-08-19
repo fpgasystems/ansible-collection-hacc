@@ -8,9 +8,9 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Set AMD Toolchain facts"
   ansible.builtin.set_fact:
-    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release.release]['tools']['zip'][amd_apm_release.update_level]['package'] }}"
-    amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release.release]['tools']['zip'][amd_apm_release.update_level]['extention'] }}"
-    amd_apm_tools_zip_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['zip'][amd_apm_release.update_level]['checksum_md5'] }}"
+    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.update_level]['package'] }}"
+    amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.update_level]['extention'] }}"
+    amd_apm_tools_archive_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.update_level]['checksum_md5'] }}"
     amd_apm_tools_prerequisites: "{{ amd_apm_packages[amd_apm_release.release]['tools']['prerequisites'] }}"
 
 - name: "[Install {{ amd_apm_release.release }}] Set archive name fact"
@@ -44,17 +44,17 @@
         get_checksum: True
       register: amd_apm_tools_archive_stats
 
-    - name: "[Install {{ amd_apm_release.release }}] Assert that the zip is available"
+    - name: "[Install {{ amd_apm_release.release }}] Assert that the archive is available"
       assert:
         that:
           - amd_apm_tools_archive_stats.stat.exists
-        fail_msg: "[ERROR] Can't find the AMD tools zip: {{ amd_apm_tools_archive_path }}. Please download it from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html"
+        fail_msg: "[ERROR] Can't find the AMD tools archive: {{ amd_apm_tools_archive_path }}. Please download it from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html"
 
-    - name: "[Install {{ amd_apm_release.release }}] Assert that the checksum of the zip is correct"
+    - name: "[Install {{ amd_apm_release.release }}] Assert that the checksum of the archive is correct"
       assert:
         that:
-          - amd_apm_tools_archive_stats.stat.checksum == amd_apm_tools_zip_checksum
-        fail_msg: "[ERROR] Checksum of zip file does not correspond to expected md5 checksum: {{ amd_apm_tools_archive_path }}. The file might have been tampered with. Please download the correct version from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html"
+          - amd_apm_tools_archive_stats.stat.checksum == amd_apm_tools_archive_checksum
+        fail_msg: "[ERROR] Checksum of archive file does not correspond to expected md5 checksum: {{ amd_apm_tools_archive_path }}. The file might have been tampered with. Please download the correct version from https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html"
 
 
 # EXTRACTION

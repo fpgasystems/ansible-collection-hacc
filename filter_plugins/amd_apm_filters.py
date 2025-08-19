@@ -13,7 +13,7 @@ class FilterModule(object):
         #   Otherwise a Dictionary is expected, with at least the release attribute. All missing attributes are filled in with defaults
 
         RELEASE_REGEX = r'^\d{4}\.\d$'
-        VALID_INSTALL_METHODS = ['zip', 'installer']
+        VALID_INSTALL_METHODS = ['archive', 'installer']
         VALID_STATES = ['present', 'absent']
         VALID_UPDATE_LEVELS = ['base', 'update1', 'update2']
         VALID_VIVADO_ONLY_VALUES = [False, True]
@@ -30,7 +30,7 @@ class FilterModule(object):
             validate_release_format(item)
             return {
                 'release': item,
-                'install_method': 'zip',
+                'install_method': 'archive',
                 'state': 'present',
                 'update_level': 'base',
                 'vivado_only': False,
@@ -43,7 +43,7 @@ class FilterModule(object):
             release = item['release']
             validate_release_format(release)
 
-            install_method = item.get('install_method', 'zip')
+            install_method = item.get('install_method', 'archive')
             if install_method not in VALID_INSTALL_METHODS:
                 raise AnsibleFilterError(
                     f"Invalid 'install_method': '{install_method}'. Must be one of: {', '.join(VALID_INSTALL_METHODS)}"

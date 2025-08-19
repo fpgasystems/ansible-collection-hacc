@@ -9,7 +9,7 @@ amd_apm_packages:
         checksum_sha256: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
 
     tools:
-      zip:
+      archive:
         base:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           package: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145
@@ -49,7 +49,7 @@ amd_apm_packages:
         - libasound2
         - compat-openssl10
         - fdisk
-      zip:
+      archive:
         update2:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141
@@ -88,7 +88,7 @@ amd_apm_packages:
         #checksum_sha256: sha256:TODO
 
     tools:
-      zip:
+      archive:
         base:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           package: FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023
@@ -129,7 +129,7 @@ amd_apm_packages:
         #checksum_sha256:
 
     tools:
-      zip:
+      archive:
         base:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           package: Xilinx_Unified_2022.2_1014_8888
