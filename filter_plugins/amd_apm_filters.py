@@ -13,11 +13,13 @@ class FilterModule(object):
         #   Otherwise a Dictionary is expected, with at least the release attribute. All missing attributes are filled in with defaults
 
         RELEASE_REGEX = r'^\d{4}\.\d$'
-        VALID_INSTALL_METHODS = ['archive', 'installer']
-        VALID_STATES = ['present', 'absent']
-        VALID_UPDATE_LEVELS = ['base', 'update1', 'update2']
-        VALID_VIVADO_ONLY_VALUES = [False, True]
-        VALID_INSTALL_RUNTIME_VALUES = [True, False]
+
+        VALID_TOOLS_STATE = ['present', 'absent']
+        VALID_TOOLS_INSTALL_METHODS = ['archive', 'installer']
+        VALID_TOOLS_UPDATE_LEVELS = ['base', 'update1', 'update2']
+        VALID_TOOLS_VIVADO_ONLY_VALUES = [False, True]
+
+        VALID_RUNTIME_STATE = ['present', 'absent']
 
 
         def validate_release_format(release):
@@ -30,11 +32,15 @@ class FilterModule(object):
             validate_release_format(item)
             return {
                 'release': item,
-                'install_method': 'archive',
-                'state': 'present',
-                'update_level': 'base',
-                'vivado_only': False,
-                'install_runtime': True
+                'tools': {
+                    'state': 'present',
+                    'install_method': 'archive',
+                    'update_level': 'base',
+                    'vivado_only': False
+                },
+                'runtime': {
+                    'state': 'present'
+                }
             }
         elif isinstance(item, dict):
             if 'release' not in item:
@@ -43,43 +49,51 @@ class FilterModule(object):
             release = item['release']
             validate_release_format(release)
 
-            install_method = item.get('install_method', 'archive')
-            if install_method not in VALID_INSTALL_METHODS:
+            tools = item.get('tools', {})
+
+            tools_state = tools.get('state', 'present')
+            if tools_state not in VALID_TOOLS_STATE:
                 raise AnsibleFilterError(
-                    f"Invalid 'install_method': '{install_method}'. Must be one of: {', '.join(VALID_INSTALL_METHODS)}"
+                    f"Invalid 'tools.state': '{tools_state}'. Must be one of: {', '.join(VALID_TOOLS_STATE)}"
                 )
 
-            state = item.get('state', 'present')
-            if state not in VALID_STATES:
+            tools_install_method = tools.get('install_method', 'archive')
+            if tools_install_method not in VALID_TOOLS_INSTALL_METHODS:
                 raise AnsibleFilterError(
-                    f"Invalid 'state': '{state}'. Must be one of: {', '.join(VALID_STATES)}"
+                    f"Invalid 'tools.install_method': '{tools_install_method}'. Must be one of: {', '.join(VALID_TOOLS_INSTALL_METHODS)}"
                 )
 
-            update_level = item.get('update_level', 'base')
-            if update_level not in VALID_UPDATE_LEVELS:
+            tools_update_level = tools.get('update_level', 'base')
+            if tools_update_level not in VALID_TOOLS_UPDATE_LEVELS:
                 raise AnsibleFilterError(
-                    f"Invalid 'update_level': '{update_level}'. Must be one of: {', '.join(VALID_UPDATE_LEVELS)}"
+                    f"Invalid 'tools.update_level': '{tools_update_level}'. Must be one of: {', '.join(VALID_TOOLS_UPDATE_LEVELS)}"
                 )
 
-            vivado_only = item.get('vivado_only', False)
-            if vivado_only not in VALID_VIVADO_ONLY_VALUES:
+            tools_vivado_only = tools.get('vivado_only', False)
+            if tools_vivado_only not in VALID_TOOLS_VIVADO_ONLY_VALUES:
                 raise AnsibleFilterError(
-                    f"Invalid 'vivado_only': '{vivado_only}'. Must be a boolean (True or False)"
+                    f"Invalid 'tools.vivado_only': '{tools_vivado_only}'. Must be a boolean (True or False)"
                 )
 
-            install_runtime = item.get('install_runtime', True)
-            if install_runtime not in VALID_INSTALL_RUNTIME_VALUES:
+            runtime = item.get('runtime', {})
+
+            runtime_state = runtime.get('state', 'present')
+            if runtime_state not in VALID_RUNTIME_STATE:
                 raise AnsibleFilterError(
-                    f"Invalid 'install_runtime': '{install_runtime}'. Must be a boolean (True or False)"
+                    f"Invalid 'runtime.state': '{runtime_state}'. Must be one of: {', '.joing(VALID_RUNTIME_STATE)}"
                 )
 
             return {
                 'release': release,
-                'install_method': install_method,
-                'state': state,
-                'update_level': update_level,
-                'vivado_only': vivado_only,
-                'install_runtime': install_runtime
+                'tools': {
+                    'state': tools_state,
+                    'install_method': tools_install_method,
+                    'update_level': tools_update_level,
+                    'vivado_only': tools_vivado_only,
+                },
+                'runtime': {
+                    'state': runtime_state
+                }
             }
 
         else:
