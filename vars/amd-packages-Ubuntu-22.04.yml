@@ -21,7 +21,7 @@ amd_apm_packages:
         base:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           bin: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145_Lin64.bin
-          checksum_md5:  d454c48fc36481c21d3255b23f9b6c73
+          checksum_md5: d454c48fc36481c21d3255b23f9b6c73
 
   '2024.2':
     runtime:
@@ -61,7 +61,7 @@ amd_apm_packages:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           package: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001
           extention: .tar
-          checksum_md5:  0ca31a787bbdff82b55213522e604446
+          checksum_md5: 0ca31a787bbdff82b55213522e604446
       installer:
         update2:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
@@ -97,12 +97,12 @@ amd_apm_packages:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           package: FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023
           extention: .tar.gz
-          checksum_md5:  372c0b184e32001137424e395823de3c
+          checksum_md5: 372c0b184e32001137424e395823de3c
       installer:
         base:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           bin: FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023_Lin64.bin
-          checksum_md5:  8b0e99a41b851b50592d5d6ef1b1263d
+          checksum_md5: 8b0e99a41b851b50592d5d6ef1b1263d
 
   '2023.2':
     runtime:
@@ -163,10 +163,9 @@ amd_apm_packages:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           package: Xilinx_Unified_2022.2_1014_8888
           extention: .tar.gz
-          checksum_md5:  4b4e84306eb631fe67d3efb469122671
+          checksum_md5: 4b4e84306eb631fe67d3efb469122671
       installer:
         base:
           url: https://www.xilinx.com/member/forms/download/xef.html?filename=
           bin: Xilinx_Unified_2022.2_1014_8888_Lin64.bin
           checksum_md5: 9bf473b6be0b8531e70fd3d5c0fe4817
-
