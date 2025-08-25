@@ -11,10 +11,14 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line  }}"
   loop:
-    - { regexp: '^CreateProgramGroupShortcuts=', line: 'CreateProgramGroupShortcuts={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}' }
-    - { regexp: '^CreateDesktopShortcuts=', line: 'CreateDesktopShortcuts={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}' }
-    - { regexp: '^CreateShortcutsForAllUsers=', line: 'CreateShortcutsForAllUsers={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}' }
-    - { regexp: '^CreateFileAssociation=', line: 'CreateFileAssociation={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}' }
+    - regexp: "^CreateProgramGroupShortcuts="
+      line: "CreateProgramGroupShortcuts={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}"
+    - regexp: "^CreateDesktopShortcuts="
+      line: "CreateDesktopShortcuts={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}"
+    - regexp: "^CreateShortcutsForAllUsers="
+      line: "CreateShortcutsForAllUsers={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}"
+    - regexp: "^CreateFileAssociation="
+      line: "CreateFileAssociation={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}"
 
 
 # SELECT MODULES TO INSTALL

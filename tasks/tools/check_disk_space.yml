@@ -7,6 +7,7 @@
       {{
         amd_apm_releases_normalized
         | selectattr('release', 'in', releases_to_install)
+        | map(attribute='tools')
         | map(attribute='vivado_only')
         | map('ternary', 100, 300)
         | sum

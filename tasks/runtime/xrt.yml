@@ -30,7 +30,7 @@
     releases_to_install: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('install_runtime', 'eq', True)
+        | selectattr('runtime.state', 'eq', 'present')
         | rejectattr('release', 'in', releases_with_xrt_dir_present)
         | map(attribute='release')
         | list
@@ -38,14 +38,14 @@
     releases_to_uninstall: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('install_runtime', 'eq', False)
+        | selectattr('runtime.state', 'eq', 'absent')
         | map(attribute='release')
         | list
       }}
     releases_already_correct: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('install_runtime', 'eq', True)
+        | selectattr('runtime.state', 'eq', 'present')
         | selectattr('release', 'in', releases_with_xrt_dir_present)
         | map(attribute='release')
         | list
@@ -55,7 +55,10 @@
   set_fact:
     releases_to_uninstall: >-
       {{
-        releases_to_uninstall + releases_with_xrt_dir_present | reject('in', releases_to_install + releases_already_correct) | list | unique
+        releases_to_uninstall + releases_with_xrt_dir_present
+        | reject('in', releases_to_install + releases_already_correct)
+        | list
+        | unique
       }}
   when: amd_apm_runtime_uninstall_dangling_releases
 

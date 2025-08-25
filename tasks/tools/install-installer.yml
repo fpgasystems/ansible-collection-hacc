@@ -8,8 +8,8 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Set Tools facts"
   ansible.builtin.set_fact:
-    amd_apm_tools_installer_bin: "{{ amd_apm_packages[amd_apm_release.release]['tools']['installer'][amd_apm_release.update_level]['bin'] }}"
-    amd_apm_tools_installer_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['installer'][amd_apm_release.update_level]['checksum_md5'] }}"
+    amd_apm_tools_installer_bin: "{{ amd_apm_packages[amd_apm_release.release]['tools']['installer'][amd_apm_release.tools.update_level]['bin'] }}"
+    amd_apm_tools_installer_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['installer'][amd_apm_release.tools.update_level]['checksum_md5'] }}"
     amd_apm_tools_prerequisites: "{{ amd_apm_packages[amd_apm_release.release]['tools']['prerequisites'] }}"
 
 - name: "[Install {{ amd_apm_release.release }}] Set Tools installer path fact"
@@ -33,7 +33,7 @@
   stat:
     path: "{{ amd_apm_tools_installer }}"
     checksum_algorithm: md5
-    get_checksum: True
+    get_checksum: true
   register: amd_apm_tools_installer_stats
 
 - name: "[Install {{ amd_apm_release.release }}] Assert that the installer is available"
@@ -100,7 +100,7 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Install prerequisite packages"
   package:
-    name: amd_apm_tools_prerequisites
+    name: "{{ amd_apm_tools_prerequisites }}"
     state: present
 
 - name: "[Install {{ amd_apm_release.release }}] Ensure Vitis install directory exists"
@@ -115,7 +115,7 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Generate AMD tools configuration file"
   expect:
-    command: "{{ amd_apm_tools_installer }} --nox11 -- --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_release.vivado_only %}Vivado{% else %}Vitis{% endif %}'"
+    command: "{{ amd_apm_tools_installer }} --nox11 -- --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_release.tools.vivado_only %}Vivado{% else %}Vitis{% endif %}'"
     responses:
       "Please choose: ":
         - "1"
@@ -124,7 +124,7 @@
   copy:
     src: /root/.Xilinx/install_config.txt
     dest: "/root/.Xilinx/{{ amd_apm_release.release }}/install_config.txt"
-    remote_src: True
+    remote_src: true
 
 - name: "[Install {{ amd_apm_release.release }}] Edit install config"
   include_tasks: edit-install-config.yml
@@ -133,9 +133,8 @@
     enable_desktop_icons: amd_apm_tools_enable_desktop_icons
 
 - name: "[Install {{ amd_apm_release.release }}] Install Tools (this usually takes about 2 hours, but can take up to 6 hours...)"
-  command: "{{ amd_apm_tools_installer }} --nox11 -- --batch Install --config /root/.Xilinx/install_config.txt --agree XilinxEULA,3rdPartyEULA"
+  command: "{{ amd_apm_tools_installer }} --nox11 -- --batch Install --config /root/.Xilinx/{{ amd_apm_release.release }}/install_config.txt --agree XilinxEULA,3rdPartyEULA"
   vars:
     # wait up to 6 hours
     ansible_command_timout: 21600
     ansible_ssh_timout: 21600
-

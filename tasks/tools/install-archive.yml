@@ -8,9 +8,9 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Set AMD Toolchain facts"
   ansible.builtin.set_fact:
-    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.update_level]['package'] }}"
-    amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.update_level]['extention'] }}"
-    amd_apm_tools_archive_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.update_level]['checksum_md5'] }}"
+    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.tools.update_level]['package'] }}"
+    amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.tools.update_level]['extention'] }}"
+    amd_apm_tools_archive_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.tools.update_level]['checksum_md5'] }}"
     amd_apm_tools_prerequisites: "{{ amd_apm_packages[amd_apm_release.release]['tools']['prerequisites'] }}"
 
 - name: "[Install {{ amd_apm_release.release }}] Set archive name fact"
@@ -41,7 +41,7 @@
       stat:
         path: "{{ amd_apm_tools_archive_path }}"
         checksum_algorithm: md5
-        get_checksum: True
+        get_checksum: true
       register: amd_apm_tools_archive_stats
 
     - name: "[Install {{ amd_apm_release.release }}] Assert that the archive is available"
@@ -75,7 +75,7 @@
       unarchive:
         src: "{{ amd_apm_tools_archive_path }}"
         dest: "{{ amd_apm_tools_extraction_path }}"
-        remote_src: yes
+        remote_src: true
         extra_opts: "--no-same-owner"
 
 
@@ -83,7 +83,7 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Install prerequisite packages"
   package:
-    name: amd_apm_tools_prerequisites
+    name: "{{ amd_apm_tools_prerequisites }}"
     state: present
 
 - name: "[Install {{ amd_apm_release.release }}] Ensure Vitis install directory exists"
@@ -98,7 +98,7 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Generate AMD tools configuration file"
   expect:
-    command: "./xsetup --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_release.vivado_only %}Vivado{% else %}Vitis{% endif %}'"
+    command: "./xsetup --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_release.tools.vivado_only %}Vivado{% else %}Vitis{% endif %}'"
     responses:
       "Please choose: ":
         - "1"
@@ -109,7 +109,7 @@
   copy:
     src: /root/.Xilinx/install_config.txt
     dest: "/root/.Xilinx/{{ amd_apm_release.release }}/install_config.txt"
-    remote_src: True
+    remote_src: true
 
 - name: "[Install {{ amd_apm_release.release }}] Edit install config"
   include_tasks: edit-install-config.yml
@@ -118,7 +118,7 @@
     enable_desktop_icons: amd_apm_tools_enable_desktop_icons
 
 - name: "[Install {{ amd_apm_release.release }}] Install tools (this usually takes about 2 hours, but can take up to 6 hours...)"
-  command: "./xsetup --batch Install --config /root/.Xilinx/install_config.txt --agree XilinxEULA,3rdPartyEULA"
+  command: "./xsetup --batch Install --config /root/.Xilinx/{{ amd_apm_release.release }}/install_config.txt --agree XilinxEULA,3rdPartyEULA"
   args:
     chdir: "{{ amd_apm_tools_extraction_path }}/{{ amd_apm_tools_package }}"
   vars:

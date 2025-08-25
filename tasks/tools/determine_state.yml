@@ -5,8 +5,8 @@
     paths:
       - "{{ amd_apm_tools_install_path }}"
     file_type: directory
-    use_regex: True
-    recurse: True
+    use_regex: true
+    recurse: true
     depth: 2
   register: found_tools_dirs
 
@@ -44,7 +44,7 @@
     releases_to_install: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('state', 'eq', 'present')
+        | selectattr('tools.state', 'eq', 'present')
         | rejectattr('release', 'in', releases_with_vivado_dir_present)
         | map(attribute='release')
         | list
@@ -52,24 +52,24 @@
     releases_to_uninstall: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('state', 'eq', 'absent')
+        | selectattr('tools.state', 'eq', 'absent')
         | map(attribute='release')
         | list
       }}
     releases_already_correct: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('state', 'eq', 'present')
+        | selectattr('tools.state', 'eq', 'present')
         | selectattr('release', 'in', releases_with_vivado_dir_present)
-        | selectattr('vivado_only', 'eq', True)
+        | selectattr('tools.vivado_only', 'eq', True)
         | rejectattr('release', 'in', releases_with_vitis_dir_present)
         | map(attribute='release')
         | list
         + (
           amd_apm_releases_normalized
-          | selectattr('state', 'eq', 'present')
+          | selectattr('tools.state', 'eq', 'present')
           | selectattr('release', 'in', releases_with_vivado_dir_present)
-          | selectattr('vivado_only', 'eq', False)
+          | selectattr('tools.vivado_only', 'eq', False)
           | selectattr('release', 'in', releases_with_vitis_dir_present)
           | map(attribute='release')
           | list
@@ -78,17 +78,17 @@
     releases_to_reinstall: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('state', 'eq', 'present')
+        | selectattr('tools.state', 'eq', 'present')
         | selectattr('release', 'in', releases_with_vivado_dir_present)
-        | selectattr('vivado_only', 'eq', False)
+        | selectattr('tools.vivado_only', 'eq', False)
         | rejectattr('release', 'in', releases_with_vitis_dir_present)
         | map(attribute='release')
         | list
         + (
           amd_apm_releases_normalized
-          | selectattr('state', 'eq', 'present')
+          | selectattr('tools.state', 'eq', 'present')
           | selectattr('release', 'in', releases_with_vivado_dir_present)
-          | selectattr('vivado_only', 'eq', True)
+          | selectattr('tools.vivado_only', 'eq', True)
           | selectattr('release', 'in', releases_with_vitis_dir_present)
           | map(attribute='release')
           | list
