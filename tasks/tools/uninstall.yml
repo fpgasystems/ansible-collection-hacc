@@ -6,7 +6,7 @@
 ##
 
 - name: Uninstall tasks for releases up to 2024.2
-  when: "{{ amd_apm_release.split('.')[0] | int }} <= 2024"
+  when: (amd_apm_release.split('.')[0] | int) <= 2024 }}
   block:
     - name: "[Uninstall {{ amd_apm_release }}] Remove program files"
       file:
@@ -31,7 +31,7 @@
         state: absent
 
 - name: Uninstall tasks for releases from 2025.1 and onwards
-  when: "{{ amd_apm_release.split('.')[0] | int }} >= 2025"
+  when: (amd_apm_release.split('.')[0] | int) >= 2025
   block:
     - name: "[Uninstall {{ amd_apm_release }}] Remove program files"
       file:

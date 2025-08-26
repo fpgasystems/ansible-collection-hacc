@@ -30,8 +30,8 @@ The root of this directory (`/opt/amd/downloads`) can be changed using the `amd_
 1) Go to the [AMD website](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html)
 2) Select 'Vitis (SW Developer)' in the ribbon bar
 3) Select the release you want (older versions are under the 'Vitis Archive' option)
-4) Scroll down to find the `update_level` you want. The initial release is called `base` in this role and is generally recommended.
-5) Select the `install_method`, the BIN file for the installer and the SFD (Single File Download) for the archive.
+4) Scroll down to find the `tools_update_level` you want. The initial release is referred to as `base` in this role and is generally recommended.
+5) Select the `tools_install_method`, the BIN file for the installer and the SFD (Single File Download) for the archive.
 
 ##### Instructions for downloading XRT installation files
 1) Go to the [AMD website](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html)
@@ -71,34 +71,32 @@ The releases that need to be installed by the role are defined in a list in the 
 
 ```yaml
 amd_apm_releases:
-  - release: ""                     # (required) String with format YYYY.X indicating AMD tools/runtime release
-                                    #            where YYYY is a 4 digit year and X is a number, eg. 2024.2
+  - release: ""                         # (required) String with format YYYY.X indicating AMD tools/runtime release
+                                        #            where YYYY is a 4 digit year and X is a number, eg. 2024.2
 
-    tools:                          # Subsection with options related to Tools installation
-      state: present                  # options: present, absent
-      install_method: archive         # options: archive, installer
-      update_level: base              # options: base, update1, update2
-      vivado_only: False              # options: False, True
+    tools_state: present                # options: present, absent
+    tools_install_method: archive       # options: archive, installer
+    tools_update_level: base            # options: base, update1, update2
+    tools_vivado_only: False            # options: False, True
 
-    runtime:                        # Subsection with options related to Runtime installation
-      state: present                  # options: absent, present
-      type: xrt                       # options: xrt, aved
+    runtime_state: present              # options: absent, present
+    runtime_type: xrt                   # options: xrt, aved
 
 ```
 Each item in the list is an release object, providing multiple options per release. The `release` attribute is the only **required** attribute. The rest have sane defaults. There are several option subsections in this object, for different parts of the installation.
 
-The `tools` subsection contains options for the installation of the AMD Toolchain (Vivado and Vitis).
-- `state` indicates if the specific release should have the toolchain installed.
-- `install_method` refers to how the tools installation file is provided, either via an archive or installer. See [download instructions](#Instructions_for_downloading_toolchain_installation_files).
-- `update_level` indicates which version (if there are multiple) of the release you want to install, where `base` is the initial release of the Toolchain and always a safe bet.
-- `vivado_only` is a boolean indicating if only Vivado should be installed (True) or if alongside Vivado also Vitis should be installed (False).
+The `tools_*` attributes are options for the installation of the AMD Toolchain (Vivado and Vitis).
+- `tools_state` indicates if the specific release should have the toolchain installed.
+- `tools_install_method` refers to how the tools installation file is provided, either via an archive or installer. See [download instructions](#Instructions_for_downloading_toolchain_installation_files).
+- `tools_update_level` indicates which version (if there are multiple) of the release you want to install, where `base` is the initial release of the Toolchain and always a safe bet.
+- `tools_vivado_only` is a boolean indicating if only Vivado should be installed (True) or if alongside Vivado also Vitis should be installed (False).
 
-The attributes `install_method`, `update_level` and `vivado_only` are irrelevant when `state: absent`.
+The attributes `tools_install_method`, `tools_update_level` and `tools_vivado_only` are irrelevant when `tools_state: absent`.
 
 
-The `runtime` subsection contains options for the installation of the AMD Runtime (XRT, AVED).
-- `state` indicates if the specific release should have the runtime installed.
-- `type` indicates which runtime needs to be installed (**Not yet implemented**)
+The `runtime_*` attributes are options for the installation of the AMD Runtime (XRT, AVED).
+- `runtime_state` indicates if the specific release should have the runtime installed.
+- `runtime_type` indicates which runtime needs to be installed (**Not yet implemented**)
 
 ```yaml
 amd_apm_releases:
@@ -187,16 +185,12 @@ amd_apm_releases:
   - "2025.1"
   - release: "2024.2"
   - release: "2024.1"
-    tools:
-      vivado_only: true
+    tools_vivado_only: true
   - release: "2023.2"
-    runtime:
-      state: absent
+    runtime_state: absent
   - release: "2022.2"
-    tools:
-      state: absent
-    runtime:
-      state: absent
+    tools_state: absent
+    runtime_state: absent
 ```
 
 License

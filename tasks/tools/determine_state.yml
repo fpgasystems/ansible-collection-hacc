@@ -1,5 +1,7 @@
 ---
 
+#  TODO: Convert this to a module
+
 - name: Gather directories of currently installed releases
   find:
     paths:
@@ -44,7 +46,7 @@
     releases_to_install: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('tools.state', 'eq', 'present')
+        | selectattr('tools_state', 'eq', 'present')
         | rejectattr('release', 'in', releases_with_vivado_dir_present)
         | map(attribute='release')
         | list
@@ -52,24 +54,24 @@
     releases_to_uninstall: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('tools.state', 'eq', 'absent')
+        | selectattr('tools_state', 'eq', 'absent')
         | map(attribute='release')
         | list
       }}
     releases_already_correct: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('tools.state', 'eq', 'present')
+        | selectattr('tools_state', 'eq', 'present')
         | selectattr('release', 'in', releases_with_vivado_dir_present)
-        | selectattr('tools.vivado_only', 'eq', True)
+        | selectattr('tools_vivado_only', 'eq', True)
         | rejectattr('release', 'in', releases_with_vitis_dir_present)
         | map(attribute='release')
         | list
         + (
           amd_apm_releases_normalized
-          | selectattr('tools.state', 'eq', 'present')
+          | selectattr('tools_state', 'eq', 'present')
           | selectattr('release', 'in', releases_with_vivado_dir_present)
-          | selectattr('tools.vivado_only', 'eq', False)
+          | selectattr('tools_vivado_only', 'eq', False)
           | selectattr('release', 'in', releases_with_vitis_dir_present)
           | map(attribute='release')
           | list
@@ -78,17 +80,17 @@
     releases_to_reinstall: >-
       {{
         amd_apm_releases_normalized
-        | selectattr('tools.state', 'eq', 'present')
+        | selectattr('tools_state', 'eq', 'present')
         | selectattr('release', 'in', releases_with_vivado_dir_present)
-        | selectattr('tools.vivado_only', 'eq', False)
+        | selectattr('tools_vivado_only', 'eq', False)
         | rejectattr('release', 'in', releases_with_vitis_dir_present)
         | map(attribute='release')
         | list
         + (
           amd_apm_releases_normalized
-          | selectattr('tools.state', 'eq', 'present')
+          | selectattr('tools_state', 'eq', 'present')
           | selectattr('release', 'in', releases_with_vivado_dir_present)
-          | selectattr('tools.vivado_only', 'eq', True)
+          | selectattr('tools_vivado_only', 'eq', True)
           | selectattr('release', 'in', releases_with_vitis_dir_present)
           | map(attribute='release')
           | list
@@ -114,12 +116,21 @@
           - "{{ amd_apm_tools_install_path }}/Model_Composer"
         file_type: directory
         patterns: '^[0-9]{4}\.[0-9]$'
-        use_regex: True
+        use_regex: true
         excludes: "{{ amd_apm_releases_normalized | map(attribute='release') | list }}"
       register: amd_apm_tools_dangling_releases
 
     - name:
       set_fact:
-        releases_to_uninstall: "{{ releases_to_uninstall + (amd_apm_tools_dangling_releases.files | map(attribute='path') | map('basename') | unique | list) | unique }}"
-
-
+        releases_to_uninstall: >-
+          {{
+            releases_to_uninstall +
+            (
+              amd_apm_tools_dangling_releases.files
+              | map(attribute='path')
+              | map('basename')
+              | unique
+              | list
+            )
+            | unique
+          }}

@@ -2,23 +2,27 @@
 
 ##
 # Parameters:
-#   - `config_path`:              Full path to the install config to edit (required)
-#   - `enable_desktop_icons`:     Boolean indicating wheter desktop icons need to be installed (default: False)
+#   - `config_path`:                            Full path to the install config to edit (required)
+#   - `amd_apm_tools_enable_desktop_icons`:     Boolean indicating wheter desktop icons need to be installed (required)
 
-- name: "[Edit config] Disable shortcut creation"
+- name: "[Edit config] Gather desktop icon config value"
+  set_fact:
+    enable_desktop_icons: "{% if amd_apm_tools_enable_desktop_icons %}1{% else %}0{% endif %}"
+
+- name: "[Edit config] Set desktop icon creation"
   lineinfile:
     path: "{{ config_path }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line  }}"
   loop:
     - regexp: "^CreateProgramGroupShortcuts="
-      line: "CreateProgramGroupShortcuts={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}"
+      line: "CreateProgramGroupShortcuts={{ enable_desktop_icons }}"
     - regexp: "^CreateDesktopShortcuts="
-      line: "CreateDesktopShortcuts={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}"
+      line: "CreateDesktopShortcuts={{ enable_desktop_icons}}"
     - regexp: "^CreateShortcutsForAllUsers="
-      line: "CreateShortcutsForAllUsers={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}"
+      line: "CreateShortcutsForAllUsers={{ enable_desktop_icons }}"
     - regexp: "^CreateFileAssociation="
-      line: "CreateFileAssociation={% if enable_desktop_icons | default('False') %}1{% else %}0{% endif %}"
+      line: "CreateFileAssociation={{ enable_desktop_icons }}"
 
 
 # SELECT MODULES TO INSTALL
@@ -31,7 +35,12 @@
 
 - name: "[Edit config] Extract the Modules= line"
   set_fact:
-    modules_line: "{{ (file_content.content | b64decode).splitlines() | select('match', '^Modules=') | list | first }}"
+    modules_line: >-
+      {{
+        (file_content.content | b64decode).splitlines()
+        | select('match', '^Modules=')
+        | list | first
+      }}
 
 - name: "[Edit config] Extract module entries"
   set_fact:

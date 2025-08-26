@@ -27,7 +27,7 @@ amd_apm_packages:
         - libgtk-3-dev
         - libxss-dev
         - libasound2
-        - compat-openssl10
+        - openssl
         - fdisk
         - libsecret-1-dev
 

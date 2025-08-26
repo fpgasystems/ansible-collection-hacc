@@ -31,16 +31,14 @@ class FilterModule(object):
         if isinstance(item, str):
             validate_release_format(item)
             return {
-                'release': item,
-                'tools': {
-                    'state': 'present',
-                    'install_method': 'archive',
-                    'update_level': 'base',
-                    'vivado_only': False
-                },
-                'runtime': {
-                    'state': 'present'
-                }
+                    'release': item,
+
+                    'tools_state': 'present',
+                    'tools_install_method': 'archive',
+                    'tools_update_level': 'base',
+                    'tools_vivado_only': False,
+
+                    'runtime_state': 'present'
             }
         elif isinstance(item, dict):
             if 'release' not in item:
@@ -49,51 +47,45 @@ class FilterModule(object):
             release = item['release']
             validate_release_format(release)
 
-            tools = item.get('tools', {})
-
-            tools_state = tools.get('state', 'present')
+            tools_state = item.get('tools_state', 'present')
             if tools_state not in VALID_TOOLS_STATE:
                 raise AnsibleFilterError(
-                    f"Invalid 'tools.state': '{tools_state}'. Must be one of: {', '.join(VALID_TOOLS_STATE)}"
+                    f"Invalid 'tools_state': '{tools_state}'. Must be one of: {', '.join(VALID_TOOLS_STATE)}"
                 )
 
-            tools_install_method = tools.get('install_method', 'archive')
+            tools_install_method = item.get('tools_install_method', 'archive')
             if tools_install_method not in VALID_TOOLS_INSTALL_METHODS:
                 raise AnsibleFilterError(
-                    f"Invalid 'tools.install_method': '{tools_install_method}'. Must be one of: {', '.join(VALID_TOOLS_INSTALL_METHODS)}"
+                    f"Invalid 'tools_install_method': '{tools_install_method}'. Must be one of: {', '.join(VALID_TOOLS_INSTALL_METHODS)}"
                 )
 
-            tools_update_level = tools.get('update_level', 'base')
+            tools_update_level = item.get('tools_update_level', 'base')
             if tools_update_level not in VALID_TOOLS_UPDATE_LEVELS:
                 raise AnsibleFilterError(
-                    f"Invalid 'tools.update_level': '{tools_update_level}'. Must be one of: {', '.join(VALID_TOOLS_UPDATE_LEVELS)}"
+                    f"Invalid 'tools_update_level': '{tools_update_level}'. Must be one of: {', '.join(VALID_TOOLS_UPDATE_LEVELS)}"
                 )
 
-            tools_vivado_only = tools.get('vivado_only', False)
+            tools_vivado_only = item.get('tools_vivado_only', False)
             if tools_vivado_only not in VALID_TOOLS_VIVADO_ONLY_VALUES:
                 raise AnsibleFilterError(
-                    f"Invalid 'tools.vivado_only': '{tools_vivado_only}'. Must be a boolean (True or False)"
+                    f"Invalid 'tools_vivado_only': '{tools_vivado_only}'. Must be a boolean (True or False)"
                 )
 
-            runtime = item.get('runtime', {})
-
-            runtime_state = runtime.get('state', 'present')
+            runtime_state = item.get('runtime_state', 'present')
             if runtime_state not in VALID_RUNTIME_STATE:
                 raise AnsibleFilterError(
-                    f"Invalid 'runtime.state': '{runtime_state}'. Must be one of: {', '.joing(VALID_RUNTIME_STATE)}"
+                    f"Invalid 'runtime_state': '{runtime_state}'. Must be one of: {', '.joing(VALID_RUNTIME_STATE)}"
                 )
 
             return {
                 'release': release,
-                'tools': {
-                    'state': tools_state,
-                    'install_method': tools_install_method,
-                    'update_level': tools_update_level,
-                    'vivado_only': tools_vivado_only,
-                },
-                'runtime': {
-                    'state': runtime_state
-                }
+
+                'tools_state': tools_state,
+                'tools_install_method': tools_install_method,
+                'tools_update_level': tools_update_level,
+                'tools_vivado_only': tools_vivado_only,
+
+                'runtime_state': runtime_state
             }
 
         else:

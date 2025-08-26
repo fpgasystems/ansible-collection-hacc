@@ -2,15 +2,15 @@
 
 ##
 # Parameters:
-#   - `amd_apm_release`:        Object containing install info: release, vivado_only, update_level (required)
+#   - `amd_apm_release`:        Object containing install info: release, tools_vivado_only, tools_update_level (required)
 
 # FACTS GATHERING
 
 - name: "[Install {{ amd_apm_release.release }}] Set AMD Toolchain facts"
   ansible.builtin.set_fact:
-    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.tools.update_level]['package'] }}"
-    amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.tools.update_level]['extention'] }}"
-    amd_apm_tools_archive_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.tools.update_level]['checksum_md5'] }}"
+    amd_apm_tools_package: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.tools_update_level]['package'] }}"
+    amd_apm_tools_archive_extention: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.tools_update_level]['extention'] }}"
+    amd_apm_tools_archive_checksum: "{{ amd_apm_packages[amd_apm_release.release]['tools']['archive'][amd_apm_release.tools_update_level]['checksum_md5'] }}"
     amd_apm_tools_prerequisites: "{{ amd_apm_packages[amd_apm_release.release]['tools']['prerequisites'] }}"
 
 - name: "[Install {{ amd_apm_release.release }}] Set archive name fact"
@@ -98,7 +98,7 @@
 
 - name: "[Install {{ amd_apm_release.release }}] Generate AMD tools configuration file"
   expect:
-    command: "./xsetup --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_release.tools.vivado_only %}Vivado{% else %}Vitis{% endif %}'"
+    command: "./xsetup --batch ConfigGen --location {{ amd_apm_tools_install_path }} --product '{% if amd_apm_release.tools_vivado_only %}Vivado{% else %}Vitis{% endif %}'"
     responses:
       "Please choose: ":
         - "1"
@@ -115,7 +115,6 @@
   include_tasks: edit-install-config.yml
   vars:
     config_path: "/root/.Xilinx/{{ amd_apm_release.release }}/install_config.txt"
-    enable_desktop_icons: amd_apm_tools_enable_desktop_icons
 
 - name: "[Install {{ amd_apm_release.release }}] Install tools (this usually takes about 2 hours, but can take up to 6 hours...)"
   command: "./xsetup --batch Install --config /root/.Xilinx/{{ amd_apm_release.release }}/install_config.txt --agree XilinxEULA,3rdPartyEULA"
