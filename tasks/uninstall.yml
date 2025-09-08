@@ -13,21 +13,21 @@
         path: "{{ item }}"
         state: absent
       loop:
-        - "{{ amd_apm_tools_install_path }}/Vivado/{{ release }}"
-        - "{{ amd_apm_tools_install_path }}/Vitis_HLS/{{ release }}"
-        - "{{ amd_apm_tools_install_path }}/Vitis/{{ release }}"
-        - "{{ amd_apm_tools_install_path }}/Model_Composer/{{ release }}"
+        - "{{ amd_fpga_toolchain_install_path }}/Vivado/{{ release }}"
+        - "{{ amd_fpga_toolchain_install_path }}/Vitis_HLS/{{ release }}"
+        - "{{ amd_fpga_toolchain_install_path }}/Vitis/{{ release }}"
+        - "{{ amd_fpga_toolchain_install_path }}/Model_Composer/{{ release }}"
 
     - name: "[Uninstall {{ release }}] Remove bash source scripts"
       lineinfile:
         path: /etc/bash.bashrc
-        regexp: '^source\s+{{ amd_apm_tools_install_path }}/[^/]+/{{ release }}/settings64\.sh'
+        regexp: '^source\s+{{ amd_fpga_toolchain_install_path }}/[^/]+/{{ release }}/settings64\.sh'
         state: absent
 
     - name: "[Uninstall {{ release }}] Remove Model Composer from PATH"
       lineinfile:
         path: /etc/bash.bashrc
-        regexp: '^export\s+PATH={{ amd_apm_tools_install_path }}/Model_Composer/{{ release }}/bin:\$PATH'
+        regexp: '^export\s+PATH={{ amd_fpga_toolchain_install_path }}/Model_Composer/{{ release }}/bin:\$PATH'
         state: absent
 
 - name: Uninstall tasks for releases from 2025.1 and onwards
@@ -35,17 +35,17 @@
   block:
     - name: "[Uninstall {{ release }}] Remove program files"
       file:
-        path: "{{ amd_apm_tools_install_path }}/{{ release }}"
+        path: "{{ amd_fpga_toolchain_install_path }}/{{ release }}"
         state: absent
 
     - name: "[Uninstall {{ release }}] Remove bash source scripts"
       lineinfile:
         path: /etc/bash.bashrc
-        regexp: '^source\s+{{ amd_apm_tools_install_path }}/{{ release }}/[^/]+/settings64\.sh'
+        regexp: '^source\s+{{ amd_fpga_toolchain_install_path }}/{{ release }}/[^/]+/settings64\.sh'
         state: absent
 
     - name: "[Uninstall {{ release }}] Remove Model Composer from PATH"
       lineinfile:
         path: /etc/bash.bashrc
-        regexp: '^export\s+PATH={{ amd_apm_tools_install_path }}/{{ release }}/Model_Composer/bin:\$PATH'
+        regexp: '^export\s+PATH={{ amd_fpga_toolchain_install_path }}/{{ release }}/Model_Composer/bin:\$PATH'
         state: absent
