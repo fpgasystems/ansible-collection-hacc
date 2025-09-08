@@ -6,7 +6,7 @@
 ##
 
 - name: Uninstall tasks for releases up to 2024.2
-  when: (release.split('.')[0] | int) <= 2024 }}
+  when: (release.split('.')[0] | int) <= 2024
   block:
     - name: "[Uninstall {{ release }}] Remove program files"
       file:
