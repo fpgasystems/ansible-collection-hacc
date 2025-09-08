@@ -171,7 +171,6 @@
   include_tasks: edit-install-config.yml
   vars:
     config_path: "/root/.Xilinx/{{ release }}/install_config.txt"
-    enable_desktop_icons: "{{ amd_fpga_toolchain_enable_desktop_icons }}"
 
 - name: "[Install {{ release }}] Install Tools (this usually takes about 2 hours, but can take up to 6 hours...)"
   command: >-
