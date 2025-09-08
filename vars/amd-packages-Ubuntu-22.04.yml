@@ -134,5 +134,15 @@ amd_fpga_toolchain_packages:
         url: https://www.xilinx.com/member/forms/download/xef.html?filename=
         bin: Xilinx_Unified_2022.2_1014_8888_Lin64.bin
         checksum_md5: 9bf473b6be0b8531e70fd3d5c0fe4817
-    #prerequisites:
-    #  - TODO
+    prerequisites:
+      - libc6-dev-i386
+      - net-tools
+      - graphviz
+      - make
+      - unzip
+      - g++
+      - libtinfo5
+      - xvfb
+      - git
+      - libncursesw5
+      - libc6-dev-i386
