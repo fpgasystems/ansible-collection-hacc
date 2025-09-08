@@ -1,62 +1,88 @@
 ---
+# OPTIONAL future feature: Install Vitis AI
 
 # LOAD VARIABLES
 
+# TODO: check if distribution is available, otherwise early exit
 - name: "Load the amd packages dictionary for the target distribution"
   include_vars: "amd-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
 
 
 # USER INPUT VALIDATION
 
-# Normalizing refers to filling in all attributes with defaults for the ones that were not set by the user
-- name: Normalize amd_apm_releases variable
+# TODO: compact into separate task file
+# Normalizing refers to filling in all attributes with defaults
+#  for the ones that were not set by the user
+- name: Normalize amd_fpga_toolchain_releases variable
   set_fact:
-    amd_apm_releases_normalized: "{{ amd_apm_releases | map('normalize_releases_list') | list }}"
+    amd_fpga_toolchain_releases_normalized: >-
+      {{ amd_fpga_toolchain_releases | map('normalize_releases_list') | list }}
 
 - name: Assert that the normalized releases list is as long as the user entered list
   assert:
-    that: amd_apm_releases | length == amd_apm_releases_normalized | length
+    that: amd_fpga_toolchain_releases | length == amd_fpga_toolchain_releases_normalized | length
 
-- name: Assert that there are no duplicate releases in the amd_apm_releases variable
+- name: Assert that there are no duplicate releases in the amd_fpga_toolchain_releases variable
   assert:
-    that: (amd_apm_releases_normalized | map(attribute='release') | list | unique | length) == (amd_apm_releases_normalized | length)
-    fail_msg: "Multiple definitions of the same release detected in the amd_apm_releases variable! Please define each release only once."
-
-# 1) Check if components are installed of other version than specified by variable.
-#   - if other version installed, then remove and clean up
-
-# 2) Install AMD toolchain (Vitis/Vivado)
-- include_tasks: ./tools/main.yml
-
-# 3) Install Runtime (XRT/AVED)
-# TODO: Create AVED install tasks
-# TODO: Create logic to select XRT or AVED (can't be installed at the same time). Use devices list to check if v80?
-- include_tasks: ./runtime/xrt.yml
-
-# 4) Install deployement targets
-# TODO: create deployment targets tasks
-#- set_fact:
-#    xilinx_deployment_package_name:
-#      - xilinx-cmc-u50_1.0.40-3398385_all.deb
-#      - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
-#      - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
-#      - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
-#
-#- apt:
-#    deb: "{{ amd_apm_download_path }}/Deployment_Target_Platforms/{{ item }}"
-#    state: present
-#  loop: "{{ xilinx_deployment_package_name }}"
-
-# 5) Install development targets
-# TODO: create development targets tasks
-#- set_fact:
-#    xilinx_development_package_name:
-#      - xilinx-u50-gen3x16-xdma-5-202210-1-dev_1-3499627_all.deb
-#
-#- apt:
-#    deb: "{{ amd_apm_download_path }}/Development_Target_Platforms/{{ item }}"
-#    state: present
-#  loop: "{{ xilinx_development_package_name }}"
+    that: >-
+      (
+        amd_fpga_toolchain_releases_normalized
+        | map(attribute='release')
+        | list
+        | unique
+        | length
+      ) == (
+        amd_fpga_toolchain_releases_normalized
+        | length
+      )
+    fail_msg: >-
+      Multiple definitions of the same release detected in the amd_fpga_toolchain_releases variable!
+       Please define each release only once.
 
 
-# 6) Install Vitis AI (optional)
+# DETERMINE WHAT NEEDS TO BE DONE
+
+# TODO: create module of this
+- name: Determine what needs to be done
+  include_tasks: determine_state.yml
+
+
+# REMOVE
+
+- name: Uninstall Vitis/Vivado releases
+  include_tasks: ./uninstall.yml
+  loop: "{{ releases_to_uninstall }}"
+  loop_control:
+    loop_var: release
+
+
+# CHECK SPACE
+
+- name: Check disk space
+  include_tasks: check_disk_space.yml
+  when: not amd_fpga_toolchain_skip_disk_space_check
+
+
+# INSTALL
+
+- name: Install AMD Toolchain
+  include_tasks: "./install/using-{{ amd_fpga_toolchain_release.install_method }}.yml"
+  loop: >-
+    {{
+      amd_fpga_toolchain_releases_normalized
+      | selectattr('release', 'in', releases_to_install)
+    }}
+  loop_control:
+    loop_var: amd_fpga_toolchain_release
+
+- name: Post installation tasks (set environment variables etc.)
+  include_tasks: ./post-install.yml
+  loop: >-
+    {{
+      amd_fpga_toolchain_releases_normalized
+      | selectattr('release', 'in', releases_to_install)
+    }}
+  loop_control:
+    loop_var: amd_fpga_toolchain_release
+  vars:
+    more_than_one_release: (releases_to_install + releases_already_correct) | length > 1

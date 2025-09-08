@@ -1,191 +1,138 @@
 ---
 
-amd_apm_packages:
+amd_fpga_toolchain_packages:
   '2025.1':
-    runtime:
-      xrt:
-        url: https://download.amd.com/opendownload/xrt/
-        package: xrt_202420.2.18.179_22.04-amd64-xrt.deb
-        checksum_sha256: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
-
-    tools:
-      prerequisites:
-        - libc6-dev-i386
-        - net-tools
-        - graphviz
-        - make
-        - unzip
-        - zip
-        - g++
-        - libtinfo5
-        - xvfb
-        - git
-        - libncurses5-dev
-        - libc6-dev-i386
-        - libnss3-dev
-        - libgdk-pixbuf2.0-dev
-        - libgtk-3-dev
-        - libxss-dev
-        - libasound2
-        - openssl
-        - fdisk
-        - libsecret-1-dev
-
-      archive:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          package: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145
-          extention: .tar
-          checksum_md5: 144b21e7a231081821d13f85495dd809
-      installer:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          bin: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145_Lin64.bin
-          checksum_md5: d454c48fc36481c21d3255b23f9b6c73
+    archive:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145
+        extention: .tar
+        checksum_md5: 144b21e7a231081821d13f85495dd809
+    installer:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        bin: FPGAs_AdaptiveSoCs_Unified_SDI_2025.1_0530_0145_Lin64.bin
+        checksum_md5: d454c48fc36481c21d3255b23f9b6c73
+    prerequisites:
+      - libc6-dev-i386
+      - net-tools
+      - graphviz
+      - make
+      - unzip
+      - zip
+      - g++
+      - libtinfo5
+      - xvfb
+      - git
+      - libncurses5-dev
+      - libc6-dev-i386
+      - libnss3-dev
+      - libgdk-pixbuf2.0-dev
+      - libgtk-3-dev
+      - libxss-dev
+      - libasound2
+      - openssl
+      - fdisk
+      - libsecret-1-dev
 
   '2024.2':
-    runtime:
-      xrt:
-        url: https://download.amd.com/opendownload/xrt/
-        package: xrt_202420.2.18.179_22.04-amd64-xrt.deb
-        checksum_sha256: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
-
-    tools:
-      prerequisites:
-        - libc6-dev-i386
-        - net-tools
-        - graphviz
-        - make
-        - unzip
-        - zip
-        - g++
-        - libtinfo5
-        - xvfb
-        - git
-        - libncursesw5
-        - libc6-dev-i386
-        - libnss3-dev
-        - libgdk-pixbuf2.0-dev
-        - libgtk-3-dev
-        - libxss-dev
-        - libasound2
-        - compat-openssl10
-        - fdisk
-      archive:
-        update2:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141
-          extention: .tar
-          checksum_md5: 93abf41f18b5a0e9dedff8417b556282
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          package: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001
-          extention: .tar
-          checksum_md5: 0ca31a787bbdff82b55213522e604446
-      installer:
-        update2:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          bin: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141_Lin64.bin
-          checksum_md5: e7e4eb6d3eed6a192af0c0d742c718aa
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          bin: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001_Lin64.bin
-          checksum_md5: 20c806793b3ea8d79273d5138fbd195f
-    boards:
-      - u50d:
-          deployment:
-            url: https://www.amd.com/bin/public/amdOpenDownload?filename=
-            archive: xilinx-u50-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz
-            package:
-              - xilinx-cmc-u50_1.0.40-3398385_all.deb
-              - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
-              - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
-              - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
+    archive:
+      update2:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141
+        extention: .tar
+        checksum_md5: 93abf41f18b5a0e9dedff8417b556282
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001
+        extention: .tar
+        checksum_md5: 0ca31a787bbdff82b55213522e604446
+    installer:
+      update2:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        bin: FPGAs_AdaptiveSoCs_Unified_2024.2.2_0306_2141_Lin64.bin
+        checksum_md5: e7e4eb6d3eed6a192af0c0d742c718aa
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        bin: FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001_Lin64.bin
+        checksum_md5: 20c806793b3ea8d79273d5138fbd195f
+    prerequisites:
+      - libc6-dev-i386
+      - net-tools
+      - graphviz
+      - make
+      - unzip
+      - zip
+      - g++
+      - libtinfo5
+      - xvfb
+      - git
+      - libncursesw5
+      - libc6-dev-i386
+      - libnss3-dev
+      - libgdk-pixbuf2.0-dev
+      - libgtk-3-dev
+      - libxss-dev
+      - libasound2
+      - compat-openssl10
+      - fdisk
 
   '2024.1':
-    runtime:
-      xrt:
-        url: https://www.amd.com/bin/public/amdOpenDownload?filename=
-        package: xrt_202410.2.17.319_22.04-amd64-xrt.deb
-        checksum_sha256: sha256:fedf5ca03fc041e955b9cf77509174b4ce222630e440cd6ec1179443c5a3d600
-
-    tools:
-      #prerequisites:
-      #  - TODO
-      archive:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          package: FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023
-          extention: .tar.gz
-          checksum_md5: 372c0b184e32001137424e395823de3c
-      installer:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          bin: FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023_Lin64.bin
-          checksum_md5: 8b0e99a41b851b50592d5d6ef1b1263d
+    archive:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023
+        extention: .tar.gz
+        checksum_md5: 372c0b184e32001137424e395823de3c
+    installer:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        bin: FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023_Lin64.bin
+        checksum_md5: 8b0e99a41b851b50592d5d6ef1b1263d
+    #prerequisites:
+    #  - TODO
 
   '2023.2':
-    runtime:
-      xrt:
-        url: https://www.amd.com/bin/public/amdOpenDownload?filename=
-        package: xrt_202320.2.16.204_22.04-amd64-xrt.deb
-        checksum_sha256: sha256:144873c762a5218a6e9d79934818edc80b5b95bbb3e6d92f9eddaaa76d60521a
-
-    tools:
-      #prerequisites:
-      #  - TODO
-      archive:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          package: FPGAs_AdaptiveSoCs_Unified_2023.2_1013_2256
-          extention: .tar.gz
-          checksum_md5: 64d64e9b937b6fd5e98b41811c74aab2
-      installer:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          bin: FPGAs_AdaptiveSoCs_Unified_2023.2_1013_2256_Lin64.bin
-          checksum_md5: b8c785d03b754766538d6cde1277c4f0
+    archive:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: FPGAs_AdaptiveSoCs_Unified_2023.2_1013_2256
+        extention: .tar.gz
+        checksum_md5: 64d64e9b937b6fd5e98b41811c74aab2
+    installer:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        bin: FPGAs_AdaptiveSoCs_Unified_2023.2_1013_2256_Lin64.bin
+        checksum_md5: b8c785d03b754766538d6cde1277c4f0
+    #prerequisites:
+    #  - TODO
 
   '2023.1':
-    runtime:
-      xrt:
-        url: https://www.amd.com/bin/public/amdOpenDownload?filename=
-        package: xrt_202310.2.15.225_20.04-amd64-xrt.deb
-        checksum_sha256: sha256:bd5f6eba1d2facd373670751b522271a657c42267164860413de2e959224b257
-
-    tools:
-      #prerequisites:
-      #  - TODO
-      archive:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          package: Xilinx_Unified_2023.1_0507_1903
-          extention: .tar.gz
-          checksum_md5: f2011ceba52b109e3551c1d3189a8c9c
-      installer:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          bin: Xilinx_Unified_2023.1_0507_1903_Lin64.bin
-          checksum_md5: e47ad71388b27a6e2339ee82c3c8765f
+    archive:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: Xilinx_Unified_2023.1_0507_1903
+        extention: .tar.gz
+        checksum_md5: f2011ceba52b109e3551c1d3189a8c9c
+    installer:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        bin: Xilinx_Unified_2023.1_0507_1903_Lin64.bin
+        checksum_md5: e47ad71388b27a6e2339ee82c3c8765f
+    #prerequisites:
+    #  - TODO
 
   '2022.2':
-    runtime:
-      xrt:
-        url: https://www.amd.com/bin/public/amdOpenDownload?filename=
-        package: xrt_202220.2.14.354_22.04-amd64-xrt.deb
-        checksum_sha256: sha256:00f62fbf3e3b4972df96eb0a73191765f9a004c9cf86df9dff70450b32ccdbe0
-
-    tools:
-      #prerequisites:
-      #  - TODO
-      archive:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          package: Xilinx_Unified_2022.2_1014_8888
-          extention: .tar.gz
-          checksum_md5: 4b4e84306eb631fe67d3efb469122671
-      installer:
-        base:
-          url: https://www.xilinx.com/member/forms/download/xef.html?filename=
-          bin: Xilinx_Unified_2022.2_1014_8888_Lin64.bin
-          checksum_md5: 9bf473b6be0b8531e70fd3d5c0fe4817
+    archive:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: Xilinx_Unified_2022.2_1014_8888
+        extention: .tar.gz
+        checksum_md5: 4b4e84306eb631fe67d3efb469122671
+    installer:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        bin: Xilinx_Unified_2022.2_1014_8888_Lin64.bin
+        checksum_md5: 9bf473b6be0b8531e70fd3d5c0fe4817
+    #prerequisites:
+    #  - TODO

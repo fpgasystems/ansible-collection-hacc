@@ -2,7 +2,7 @@
 
 galaxy_info:
   author: Geert Roks
-  description: Manages the tools needed for FPGA development and deployment using AMD adaptive platforms
+  description: Manages the installation of the toolchain needed for FPGA development and deployment using AMD adaptive platforms
   company: ETH Zürich - Systems Group
 
   license: MIT

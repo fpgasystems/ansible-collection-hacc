@@ -1,18 +1,14 @@
 ---
 
-amd_apm_releases: []
+amd_fpga_toolchain_releases: []
 
-amd_apm_runtime_install_path: /opt/amd
-amd_apm_tools_install_path: /tools/amd
-amd_apm_download_path: /opt/amd/downloads
+amd_fpga_toolchain_install_path: /tools/amd
+amd_fpga_toolchain_download_path: /opt/amd/downloads
 
-amd_apm_runtime_set_bash_environment_variables: true
-amd_apm_runtime_uninstall_dangling_releases: false
+amd_fpga_toolchain_set_bash_environment_variables: true
+amd_fpga_toolchain_uninstall_dangling_releases: false
+amd_fpga_toolchain_skip_disk_space_check: false
+amd_fpga_toolchain_enable_desktop_icons: false
 
-amd_apm_tools_set_bash_environment_variables: true
-amd_apm_tools_uninstall_dangling_releases: false
-amd_apm_tools_skip_disk_space_check: false
-amd_apm_tools_enable_desktop_icons: false
-
-amd_apm_user_email: null
-amd_apm_user_password: null
+amd_user_email: null
+amd_user_password: null

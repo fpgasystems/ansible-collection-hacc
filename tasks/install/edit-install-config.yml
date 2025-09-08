@@ -2,12 +2,12 @@
 
 ##
 # Parameters:
-#   - `config_path`:                            Full path to the install config to edit (required)
-#   - `amd_apm_tools_enable_desktop_icons`:     Boolean indicating wheter desktop icons need to be installed (required)
+#   - `config_path`:              Full path to the install config to edit (required)
+#   - `enable_desktop_icons`:     Boolean indicating wheter desktop icons need to be installed (required)
 
 - name: "[Edit config] Gather desktop icon config value"
   set_fact:
-    enable_desktop_icons: "{% if amd_apm_tools_enable_desktop_icons %}1{% else %}0{% endif %}"
+    enable_desktop_icons: "{% if enable_desktop_icons %}1{% else %}0{% endif %}"
 
 - name: "[Edit config] Set desktop icon creation"
   lineinfile:
