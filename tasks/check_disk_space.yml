@@ -8,7 +8,7 @@
       {{
         amd_fpga_toolchain_releases_normalized
         | selectattr('release', 'in', releases_to_install)
-        | map(attribute='tools_vivado_only')
+        | map(attribute='vivado_only')
         | map('ternary', 100, 300)
         | sum
       }}
