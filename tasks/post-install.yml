@@ -9,7 +9,7 @@
   when:
     - not more_than_one_release
     - amd_fpga_toolchain_set_bash_environment_variables
-    - "{{ amd_fpga_toolchain_release.release.split('.')[0] | int }} <= 2024"
+    - amd_fpga_toolchain_release.release.split('.')[0] | int <= 2024
   block:
     #Vivado is always installed
     #Vitis_HLS also comes with Vivado
@@ -48,7 +48,7 @@
   when:
     - not more_than_one_release
     - amd_fpga_toolchain_set_bash_environment_variables
-    - "{{ release.split('.')[0] | int }} >= 2025"
+    - release.split('.')[0] | int >= 2025
   block:
     #Vivado is always installed
     #Vitis_HLS also comes with Vivado
@@ -59,7 +59,6 @@
         line: "source {{ amd_fpga_toolchain_install_path }}/{{ release }}/{{ program }}/settings64.sh"
       loop:
         - "Vivado"
-        - "Vitis_HLS"
       loop_control:
         loop_var: program
 
