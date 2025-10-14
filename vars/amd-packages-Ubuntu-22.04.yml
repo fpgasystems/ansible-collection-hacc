@@ -89,8 +89,20 @@ amd_fpga_toolchain_packages:
         url: https://www.xilinx.com/member/forms/download/xef.html?filename=
         bin: FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023_Lin64.bin
         checksum_md5: 8b0e99a41b851b50592d5d6ef1b1263d
-    #prerequisites:
-    #  - TODO
+    prerequisites:
+      - libc6-dev-i386
+      - net-tools
+      - graphviz
+      - make
+      - unzip
+      - zip
+      - g++
+      - libtinfo5
+      - xvfb
+      - git
+      - libncursesw5
+      - libc6-dev-i386
+
 
   '2023.2':
     archive:
@@ -104,8 +116,18 @@ amd_fpga_toolchain_packages:
         url: https://www.xilinx.com/member/forms/download/xef.html?filename=
         bin: FPGAs_AdaptiveSoCs_Unified_2023.2_1013_2256_Lin64.bin
         checksum_md5: b8c785d03b754766538d6cde1277c4f0
-    #prerequisites:
-    #  - TODO
+    prerequisites:
+      - libc6-dev-i386
+      - net-tools
+      - graphviz
+      - make
+      - unzip
+      - g++
+      - libtinfo5
+      - xvfb
+      - git
+      - libncursesw5
+      - libc6-dev-i386
 
   '2023.1':
     archive:
@@ -119,8 +141,18 @@ amd_fpga_toolchain_packages:
         url: https://www.xilinx.com/member/forms/download/xef.html?filename=
         bin: Xilinx_Unified_2023.1_0507_1903_Lin64.bin
         checksum_md5: e47ad71388b27a6e2339ee82c3c8765f
-    #prerequisites:
-    #  - TODO
+    prerequisites:
+      - libc6-dev-i386
+      - net-tools
+      - graphviz
+      - make
+      - unzip
+      - g++
+      - libtinfo5
+      - xvfb
+      - git
+      - libncursesw5
+      - libc6-dev-i386
 
   '2022.2':
     archive:
