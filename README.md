@@ -30,6 +30,30 @@ The root of this directory (`/opt/amd/downloads`) can be changed using the `amd_
 4) Scroll down to find the `update_level` you want. The initial release is referred to as `base` in this role and is generally recommended.
 5) Select the `install_method`, the BIN file for the installer and the SFD (Single File Download) for the archive.
 
+Installation
+------------
+To use this Ansible role, it needs to be installed in a location where Ansible will find it. There are many places to put it, as described in the [Ansible Roles documentation](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html#storing-and-finding-roles).
+
+Our recommended approach is to install the role in a `roles/` directory in the root of your project.
+
+To install this role, clone this git repository to the directory where you want it. Make sure to change the name of the folder from `ansible-role-amd-fpga-toolchain` to `amd_fpga_toolchain`. Or use the same syntax as below to immediately give the correct name to the folder.
+
+```bash
+cd <path/to/project>
+mkdir -p roles
+git clone <url> ./roles/amd_fpga_toolchain
+```
+
+If you are already tracking your Ansible project using Git, then it is recommended to add this repo as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
+
+```bash
+cd <path/to/project>
+mkdir -p roles
+git submodule add <url> ./roles/amd_fpga_toolchain
+git submodule init
+git submodule update
+```
+
 Role Variables
 --------------
 
