@@ -135,6 +135,11 @@ amd_fpga_toolchain_enable_desktop_icons: False
 Boolean that defines whether desktop icons should be created of the installed tools (**Not yet implemented**)
 
 ```yaml
+amd_fpga_toolchain_license_servers: []
+```
+List containing the FlexNet license servers. The format of a license server is `<port>@<server>`, where the default port for AMD is `2100`. These values will be put in the [`XILINXD_LICENSE_FILE` environment variable](https://docs.amd.com/r/en-US/ug973-vivado-release-notes-install-license/Serve-Client-Machines-Pointing-to-a-Floating-License).
+
+```yaml
 amd_user_email: null
 amd_user_password: null
 ```

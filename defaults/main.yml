@@ -10,5 +10,7 @@ amd_fpga_toolchain_uninstall_dangling_releases: false
 amd_fpga_toolchain_skip_disk_space_check: false
 amd_fpga_toolchain_enable_desktop_icons: false
 
+amd_fpga_toolchain_license_servers: []
+
 amd_user_email: null
 amd_user_password: null

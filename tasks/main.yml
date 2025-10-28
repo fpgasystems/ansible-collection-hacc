@@ -65,6 +65,12 @@
 
 # INSTALL
 
+- name: Setup License servers environment variable
+  ansible.builtin.lineinfile:
+    path: "/etc/bash.bashrc"
+    line: "export XILINXD_LICENSE_FILE={{ amd_fpga_toolchain_license_servers | join(':') }}"
+  when: amd_fpga_toolchain_license_servers | length > 0
+
 - name: Install AMD Toolchain
   include_tasks: "./install/using-{{ amd_fpga_toolchain_release.install_method }}.yml"
   loop: >-
