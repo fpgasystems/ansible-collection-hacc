@@ -5,14 +5,61 @@ class FilterModule(object):
     def filters(self):
         return {
             'normalize_releases_list': self.normalize_releases_list
+            'tools_path': self.get_tools_path
+            'get_newest_release': self.get_newest_release
         }
+
+    def get_newest_release(self, items):
+
+        def parse_release(release_str):
+            """Parse a release string 'YYYY.X' into a tuple (year, minor)."""
+            try:
+                year_str, minor_str = release_str.split('.')
+                return int(year_str), int(minor_str)
+            except Exception as e:
+                raise AnsibleFilterError(f"Invalid release format '{release_str}': {e}")
+
+        if not isinstance(items, list):
+            raise AnsibleFilterError("Input must be a list of dictionaries")
+
+        try:
+            return max(items, key=lambda x: parse_release(x['release']))
+        except KeyError:
+            raise AnsibleFilterError("Each item must have a 'release' attribute")
+        except ValueError:
+            raise AnsibleFilterError("List is empty or releases are invalid")
+
+    def get_tools_path(self, base_path, release, tool):
+        self.validate_release_format(release)
+        year = int(release.split(".")[0])
+
+        VALID_TOOLS = ["Vivado", "Vitis", "Vitis_HLS", "Model_Composer"]
+        if not any(tool in t for t in VALID_TOOLS):
+            raise AnsibleFilterError(
+                    f"Invalid 'tool': '{tool}'. Expected any of: {', '.join(VALID_TOOLS)}"
+            )
+
+        path = base_path
+        if year >= 2025:
+            path = path + "/" + release + "/" + tool
+        else:
+            path = path + "/" + tool + "/" + release
+
+        return path
+
+
+    def validate_release_format(self, release):
+        RELEASE_REGEX = r'^\d{4}\.\d$'
+
+        if not re.match(RELEASE_REGEX, release):
+            raise AnsibleFilterError(
+                f"Invalid 'release' format: '{release}'. Expected format is 'YYYY.N' (e.g., '2024.1')"
+            )
 
     def normalize_releases_list(self, item):
         # Filter to fill in all defaults of the amd_apm_releases list, when not provided
         #   When only a String is given, this is interpreted as the release string
         #   Otherwise a Dictionary is expected, with at least the release attribute. All missing attributes are filled in with defaults
-
-        RELEASE_REGEX = r'^\d{4}\.\d$'
 
         VALID_TOOLS_STATE = ['present', 'absent']
         VALID_TOOLS_INSTALL_METHODS = ['archive', 'installer']
@@ -20,14 +67,9 @@ class FilterModule(object):
         VALID_TOOLS_VIVADO_ONLY_VALUES = [False, True]
 
 
-        def validate_release_format(release):
-            if not re.match(RELEASE_REGEX, release):
-                raise AnsibleFilterError(
-                    f"Invalid 'release' format: '{release}'. Expected format is 'YYYY.N' (e.g., '2024.1')"
-                )
 
         if isinstance(item, str):
-            validate_release_format(item)
+            self.validate_release_format(item)
             return {
                     'release': item,
 
@@ -41,7 +83,7 @@ class FilterModule(object):
                 raise AnsibleFilterError("Missing required 'release' key in object")
 
             release = item['release']
-            validate_release_format(release)
+            self.validate_release_format(release)
 
             tools_state = item.get('state', 'present')
             if tools_state not in VALID_TOOLS_STATE:

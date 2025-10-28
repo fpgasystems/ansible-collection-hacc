@@ -140,6 +140,12 @@ amd_fpga_toolchain_license_servers: []
 List containing the FlexNet license servers. The format of a license server is `<port>@<server>`, where the default port for AMD is `2100`. These values will be put in the [`XILINXD_LICENSE_FILE` environment variable](https://docs.amd.com/r/en-US/ug973-vivado-release-notes-install-license/Serve-Client-Machines-Pointing-to-a-Floating-License).
 
 ```yaml
+amd_fpga_toolchain_enable_jtag: false
+amd_fpga_toolchain_jtag_group: "fpga-jtag"
+```
+Settings for setting up the JTAG udev rules. This can be enabled or disabled. The jtag group is the linux group that has the priviledges to use the jtag.
+
+```yaml
 amd_user_email: null
 amd_user_password: null
 ```
