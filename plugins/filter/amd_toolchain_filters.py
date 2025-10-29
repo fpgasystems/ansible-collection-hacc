@@ -4,8 +4,8 @@ from ansible.errors import AnsibleFilterError
 class FilterModule(object):
     def filters(self):
         return {
-            'normalize_releases_list': self.normalize_releases_list
-            'tools_path': self.get_tools_path
+            'normalize_releases_list': self.normalize_releases_list,
+            'tools_path': self.get_tools_path,
             'get_newest_release': self.get_newest_release
         }
 

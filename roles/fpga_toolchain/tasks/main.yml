@@ -16,7 +16,7 @@
 - name: Normalize amd_fpga_toolchain_releases variable
   set_fact:
     amd_fpga_toolchain_releases_normalized: >-
-      {{ amd_fpga_toolchain_releases | map('normalize_releases_list') | list }}
+      {{ amd_fpga_toolchain_releases | map('fpga_systems.hacc.normalize_releases_list') | list }}
 
 - name: Assert that the normalized releases list is as long as the user entered list
   assert:
@@ -92,3 +92,6 @@
     loop_var: amd_fpga_toolchain_release
   vars:
     more_than_one_release: "{{ (releases_to_install + releases_already_correct) | length > 1 }}"
+
+- name: Configure JTAG udev rules
+  ansible.builtin.include_tasks: ./configure-jtag.yml
