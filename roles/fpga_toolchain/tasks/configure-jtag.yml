@@ -7,30 +7,44 @@
         (amd_fpga_toolchain_releases | fpga_systems.hacc.get_newest_release)['release']
       }}
 
-- name: Install udev rules for JTAG
-  ansible.builtin.command:
-    cmd: ./install_drivers
-  args:
-    chdir: >-
-      {{
-        amd_fpga_toolchain_install_path
-        | fpga_systems.hacc.tools_path(fpga_toolchain_newest_release, "Vivado")
-      }}/data/xicom/cable_drivers/lin64/install_script/install_drivers/
-    creates:
-      - /etc/udev/rules.d/52-xilinx-ftdi-usb.rules
-      - /etc/udev/rules.d/52-xilinx-digilent-usb.rules
-      - /etc/udev/rules.d/52-xilinx-pcusb.rules
+- name: Enable JTAG
   when: amd_fpga_toolchain_enable_jtag
+  block:
+    - name: Install udev rules for JTAG
+      ansible.builtin.copy:
+        remote_src: true
+        src: >-
+          {{
+            amd_fpga_toolchain_install_path
+            | fpga_systems.hacc.tools_path(fpga_toolchain_newest_release, "Vivado")
+          }}/data/xicom/cable_drivers/lin64/install_script/install_drivers/{{ item }}
+        dest: "/etc/udev/rules.d/{{ item }}"
+        owner: root
+        group: root
+        mode: '0544'
+      loop:
+        - 52-xilinx-digilent-usb.rules
+        - 52-xilinx-pcusb.rules
 
-- name: Secure the JTAG by limiting it to a group
-  ansible.builtin.lineinfile:
-    path: /etc/udev/rules.d/52-xilinx-ftdi-usb.rules
-    regexp: '^ACTION=="add", ATTRS\{idVendor\}=="0403"'
-    line: 'ACTION=="add", ATTRS{idVendor}=="0403", MODE:="664", GROUP:="{{ amd_fpga_toolchain_jtag_group }}"'
-  register: udev_rules
-  when: amd_fpga_toolchain_enable_jtag
+    - name: Install ftdi-usb udev rule with secured JTAG access limited to a group
+      fpga_systems.hacc.copy_with_lineinfile:
+        src: >-
+          {{
+            amd_fpga_toolchain_install_path
+            | fpga_systems.hacc.tools_path(fpga_toolchain_newest_release, "Vivado")
+          }}/data/xicom/cable_drivers/lin64/install_script/install_drivers/{{ item }}
+        dest: "/etc/udev/rules.d/{{ item }}"
+        owner: root
+        group: root
+        mode: '0544'
+        regexp: '^ACTION=="add", ATTRS\{idVendor\}=="0403"'
+        line: >-
+          ACTION=="add", ATTRS{idVendor}=="0403", ATTRS\{manufacturer\}=="Xilinx",
+          MODE:="664", GROUP:="{{ amd_fpga_toolchain_jtag_group }}"
+      loop:
+        - 52-xilinx-ftdi-usb.rules
 
-- name: Ensure JTAG is not enabled
+- name: Disable JTAG
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
