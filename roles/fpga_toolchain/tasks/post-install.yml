@@ -1,0 +1,91 @@
+---
+
+- name: "[Install {{ amd_fpga_toolchain_release.release }}] Load release options"
+  ansible.builtin.set_fact:
+    release: "{{ amd_fpga_toolchain_release.release }}"
+    vivado_only: "{{ amd_fpga_toolchain_release.vivado_only }}"
+
+- name: "[Install {{ release }}] Set bash environment (for  releases up to 2024.2)"
+  when:
+    - not more_than_one_release
+    - amd_fpga_toolchain_set_bash_environment_variables
+    - amd_fpga_toolchain_release.release.split('.')[0] | int <= 2024
+  block:
+    #Vivado is always installed
+    #Vitis_HLS also comes with Vivado
+    - name: Add Vivado source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_fpga_toolchain_install_path }}/{{ program }}/{{ release }}/settings64.sh"
+      loop:
+        - "Vivado"
+        - "Vitis_HLS"
+      loop_control:
+        loop_var: program
+
+    # Vitis is only installed, when install_vitis == true
+    # Model Composer comes with Vitis
+    - name: Add Vitis source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_fpga_toolchain_install_path }}/{{ program }}/{{ release }}/settings64.sh"
+        state: "{{ 'absent' if vivado_only|bool else 'present' }}"
+      loop:
+        - "Vitis"
+        - "Model_Composer"
+      loop_control:
+        loop_var: program
+
+    - name: Add Vitis Model Composer to system-wide PATH
+      lineinfile:
+        path: /etc/bash.bashrc
+        line: 'export PATH={{ amd_fpga_toolchain_install_path }}/Model_Composer/{{ release }}/bin:$PATH'
+        state: "{{ 'absent' if vivado_only|bool else 'present' }}"
+
+- name: "[Install {{ release }}] Set bash environment (for releases 2025.1 and onwards)"
+  when:
+    - not more_than_one_release
+    - amd_fpga_toolchain_set_bash_environment_variables
+    - release.split('.')[0] | int >= 2025
+  block:
+    #Vivado is always installed
+    #Vitis_HLS also comes with Vivado
+    - name: Add Vivado source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_fpga_toolchain_install_path }}/{{ release }}/{{ program }}/settings64.sh"
+      loop:
+        - "Vivado"
+      loop_control:
+        loop_var: program
+
+    # Vitis is only installed, when install_vitis == true
+    # Model Composer comes with Vitis
+    - name: Add Vitis source scripts to general bashrc
+      lineinfile:
+        path: /etc/bash.bashrc
+        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
+        line: "source {{ amd_fpga_toolchain_install_path }}/{{ release }}/{{ program }}/settings64.sh"
+        state: "{{ 'absent' if vivado_only|bool else 'present' }}"
+      loop:
+        - "Vitis"
+        - "Model_Composer"
+      loop_control:
+        loop_var: program
+
+    - name: Add Vitis Model Composer to system-wide PATH
+      lineinfile:
+        path: /etc/bash.bashrc
+        line: 'export PATH={{ amd_fpga_toolchain_install_path }}/{{ release }}/Model_Composer/bin:$PATH'
+        state: "{{ 'absent' if vivado_only|bool else 'present' }}"
+
+
+- name: "INFO: `set_bash_environment_variables: true` is ignored"
+  debug:
+    msg: "amd_fpga_toolchain_set_bash_environment_variables is set to true, but this is ignored as there are more than one releases defined in the amd_fpga_toolchain_releases variable. Only one version can be actived at a time. Use a tool like `hdev` or `module` to manage multiple versions."
+  when:
+    - more_than_one_release
+    - amd_fpga_toolchain_set_bash_environment_variables

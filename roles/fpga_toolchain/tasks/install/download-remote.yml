@@ -1,0 +1,68 @@
+---
+
+- name: "[Download {{ amd_apm_release }}] Set Vitis Core facts"
+  ansible.builtin.set_fact:
+    amd_apm_tools_download_url: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['tools']['url'] }}"
+    amd_apm_tools_package: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['tools']['package'] }}"
+    amd_apm_tools_archive: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['tools']['package'] }}.tar"
+    amd_apm_tools_checksum: "{{ amd_apm_packages[ansible_distribution][ansible_distribution_version][amd_apm_release]['tools']['checksum'] }}"
+
+- name: "[Download {{ amd_apm_release }}] Check if the tools archive has already been downloaded"
+  stat:
+    path: "{{ amd_apm_download_path }}/{{ amd_apm_tools_archive }}"
+  register: amd_apm_tools_archive_stats
+
+- name: "[Download {{ amd_apm_release }}] Check if the tools archive has already been extracted"
+  stat:
+    path: "{{ amd_apm_tools_extraction_path }}"
+  register: amd_apm_tools_extraction_stats
+
+# DOWNLOAD
+# runs when:
+#   - tools archive has not yet been downloaded
+#   and
+#   - tools archive has not yet been archived
+- when:
+    - not amd_apm_tools_archive_stats.stat.exists
+    - not amd_apm_tools_extraction_stats.stat.exists
+  block:
+    - name: "[Download {{ amd_apm_release }}] Ensure Vitis download directory exists"
+      ansible.builtin.file:
+        path: "{{ amd_apm_download_path }}"
+        state: directory
+
+    #TODO: download protected behind amd sign in and html form, need to handle this programmatically
+    - name: "[Download {{ amd_apm_release }}] Download Vitis core package (100+ GB file, may take a while...)"
+      ansible.builtin.get_url:
+        url: "{{ amd_apm_download_url }}{{ amd_apm_tools_archive }}"
+        dest: "{{ amd_apm_download_path }}"
+        checksum: "{{ amd_apm_tools_checksum }}"
+
+- debug:
+    msg: "Download has been skipped, because either tools have already been downloaded or extracted. If you want to redo the download, make sure that both the archive at location `{{ amd_apm_download_path }}/{{ amd_apm_tools_archive }}`, and extracted archive at location `{{ amd_apm_tools_extraction_path }}`, are deleted."
+  when: amd_apm_tools_archive_stats.stat.exists or amd_apm_tools_extraction_stats.stat.exists
+
+# EXTRACTION
+# runs when:
+#   - tools archive has been downloaded to the correct location
+#   and
+#   - tools archive has not been extracted
+- when:
+    - amd_apm_tools_archive_stats.stat.exists
+    - not amd_apm_tools_extraction_stats.stat.exists
+  block:
+  - name: "[Download {{ amd_apm_release }}] Ensure Vitis archive extraction directory exists"
+    ansible.builtin.file:
+      path: "{{ amd_apm_download_path }}/{{ amd_apm_tools_package }}"
+      state: directory
+
+  - name: "[Download {{ amd_apm_release }}] Extract Vitis core archive (100+ GB file, may take a while...)"
+    unarchive:
+      src: "{{ amd_apm_download_path }}/{{ amd_apm_tools_archive }}"
+      dest: "{{ amd_apm_tools_extraction_path }}"
+      remote_src: yes
+      extra_opts: "--no-same-owner"
+
+- debug:
+    msg: "Extraction has been skipped, because the tools have either already been extracted. If you want to redo the extraction, make sure that the archive at location `{{ amd_apm_download_path }}/{{ amd_apm_tools_archive }}` exists, and the extracted archive at location `{{ amd_apm_tools_extraction_path }}` is deleted."
+  when: not amd_apm_tools_archive_stats.stat.exists or amd_apm_tools_extraction_stats.stat.exists
