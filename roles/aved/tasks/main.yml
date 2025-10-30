@@ -1,0 +1,49 @@
+---
+# REF: https://xilinx.github.io/AVED/amd_v80_gen5x8_24.1_20241002/How-to%2BRebuild%2Ban%2BAVED%2BDesign%2Bfor%2BYourself.html
+
+# download AVED from git
+#  - git clone aved
+#  - add smbus ip to hw/<version>/src/iprepo
+#
+# build AVED
+# - hw:
+#   - source vivado 24.2 for linux 5.15 or 25.1 for linux 6.8
+#   - run hw/<version>/build_all.sh
+# - sw:
+#   - python3 sw/AMI/scripts/gen_package.py
+#   - apt install <path/to/ami_xxx.deb>
+#
+# load AVED on V80
+# flash fpt: https://xilinx.github.io/AVED/amd_v80_gen5x8_24.1_20241002/AVED%2BUpdating%2BFPT%2BImage%2Bin%2BFlash.html
+# write design: https://xilinx.github.io/AVED/amd_v80_gen5x8_24.1_20241002/AVED%2BUpdating%2BDesign%2BPDI%2Bin%2BFlash.html
+#   - update fpt
+#   - setup aved in partition 0
+#   - setup vrt in partition 1
+
+
+# Block installation if XRT is installed
+- name: Check if 'xrt' package is installed using apt
+  ansible.builtin.command: apt list --installed
+  register: aved_apt_list
+  changed_when: false
+
+- name: Fail if 'xrt' is installed
+  ansible.builtin.fail:
+    msg: >-
+      'xrt' package is installed.
+      Please remove it before continuing.
+      AVED and XRT are mutually exclusive
+  when: aved_apt_list.stdout is search("xrt/")
+
+# TODO: sanitize and normalize aved_devices list of objects
+# format:
+#   - bdf: ""
+#     serial_number: ""
+#     aved_partition: 0
+#     vrt_partition: -1
+#
+# partitions -> -1 don't install, 0 install on partition 0, 1 install on partion 1
+
+- name: Install from prebuilt archive
+  ansible.builtin.import_tasks: install_from_prebuilt_archive.yml
+  # when: <condition choosing between build-from-source and form-prebuilt-archive>

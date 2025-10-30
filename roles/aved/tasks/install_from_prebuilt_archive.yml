@@ -1,0 +1,169 @@
+---
+
+# Extract .zip downloaded from V80 early access site (https://account.amd.com/en/member/v80.html)
+- name: Check if AVED pre-built archive is present
+  ansible.builtin.stat:
+    path: "{{ aved_archives_path }}/{{ aved_prebuilt_archive }}"
+  register: aved_stat_prebuilt_archive
+
+- name: Fail if AVED pre-built archive is not present
+  ansible.builtin.fail:
+    msg: >-
+      AVED prebuilt archive ({{ aved_prebuilt_archive }}) is not found.
+      Please download it from the V80 early access site (https://account.amd.com/en/member/v80.html)
+      and copy it over to {{ aved_archives_path }}.
+  when: not aved_stat_prebuilt_archive.stat.exists
+
+- name: Ensure pre-built archive extraction dir is present
+  ansible.builtin.file:
+    path: "{{ aved_install_path }}"
+    state: directory
+
+- name: Set extracted prebuilt archive path fact
+  ansible.builtin.set_fact:
+    aved_archive_install_path: >-
+      {{ aved_install_path }}/{{ aved_prebuilt_archive.split('.')[:-1] | join('.') }}
+
+- name: Extract pre-built archive
+  ansible.builtin.unarchive:
+    src: "{{ aved_archives_path }}/{{ aved_prebuilt_archive }}"
+    dest: "{{ aved_archive_install_path }}/"
+    remote_src: true
+    owner: root
+    group: root
+  # idempotency fix: https://github.com/ansible/ansible/issues/85779
+  environment:
+    TZ: UTC
+
+# Install AMI
+- name: Find the AMI .deb file
+  ansible.builtin.find:
+    paths: "{{ aved_archive_install_path }}/sw_packages"
+    patterns: "ami_*.deb"
+    file_type: file
+  register: aved_found_ami_deb
+
+- name: Fail when no or more than one ami deb packages are found
+  ansible.builtin.fail:
+    msg: >-
+      {% if aved_found_ami_deb.mathced > 1 %}Multiple{% else %}No{% endif %}
+      ami_*.deb pacakges found.
+  when: aved_found_ami_deb.matched != 1
+
+- name: Install AMI
+  ansible.builtin.apt:
+    deb: "{{ aved_found_ami_deb.files[0].path }}"
+    state: present
+
+# Install Xbtest
+- name: Find the Xbtest .deb file
+  ansible.builtin.find:
+    paths: "{{ aved_archive_install_path }}/sw_packages"
+    patterns: "xbtest_*.deb"
+    file_type: file
+  register: aved_found_xbtest_deb
+
+- name: Fail when no or more than one xbtest deb packages are found
+  ansible.builtin.fail:
+    msg: >-
+      {% if aved_found_xbtest_deb.mathced > 1 %}Multiple{% else %}No{% endif %}
+      xbtest_*.deb pacakges found.
+  when: aved_found_xbtest_deb.matched != 1
+
+- name: Install Xbtest
+  ansible.builtin.apt:
+    deb: "{{ aved_found_xbtest_deb.files[0].path }}"
+    state: present
+
+# Instal FPT image on Adaptive SoC device
+# - name: Unload ami kernel module
+#   community.general.modprobe:
+#     name: ami
+#     state: absent
+#
+# - name: Copy FPT image tcl script to target
+#   ansible.builtin.copy:
+#     src: ./files/v80_program_fpt.tcl
+#     dest: /tmp/v80_program_fpt.tcl
+#     owner: root
+#     group: root
+#     mode: '0500'
+#
+# # TODO: find the name of the config file
+# - name: Configure flash on the Adaptive SoC devices
+#   ansible.builtin.command:
+#     cmd: >-
+#       vivado -mode batch -source /tmp/v80_program_ftp.tcl
+#       -tclargs {{ device.serial_number }} {{ device.name }}
+#       {{ aved_archive_install_path }}/fpt_setup/fpt_setup_amd_v80_gen5x8_25.1_exdes_1_20250820.pdi
+#       {{ aved_archive_install_path }}/fpt_setup/v80_initialization.pdi
+#   changed_when: true
+#   loop: aved_devices
+#   loop_control:
+#     loop_var: device
+
+# TODO
+# - name: Do a coldboot to apply the changes
+#   ansible.builtin.import_role:
+#     role: fpga_systems.hacc.coldboot
+#     delegate_to: localhost
+
+# Install AVED onto Adaptive SoC device
+- name: Install AVED on device
+  ansible.builtin.command:
+    cmd: >-
+      ami_tool cfgmem_program
+      -d {{ device.bdf }}
+      -i {{ aved_archive_install_path }}/design.pdi
+      -t primary
+      -p 0
+  changed_when: true
+  when:
+    - aved_devices is defined
+    # Check if it is a list (iterable, but not string or dict (mapping))
+    - aved_devices is not string
+    - aved_devices is not mapping
+    - aved_devices is iterable
+    - (aved_devices | length) > 0
+  loop: "{{ aved_devices }}"
+  loop_control:
+    loop_var: device
+
+# Install VRT
+- name: Find the VRT .deb file
+  ansible.builtin.stat:
+    path: "{{ aved_archives_path }}/{{ aved_vrt_package }}"
+  register: aved_found_vrt_deb
+
+- name: Fail vrt package not found
+  ansible.builtin.fail:
+    msg: >-
+      VRT pacakge ({{ aved_archives_path }}/{{ aved_vrt_package }}) not found.
+  when: not aved_found_vrt_deb.stat.exists
+
+- name: Install VRT
+  ansible.builtin.apt:
+    deb: "{{ aved_archives_path }}/{{ aved_vrt_package }}"
+    state: present
+
+# Install VRT onto Adaptive SoC device
+# /opt/amd/vrt/design.pdi is provided by the vrt .deb package
+- name: Install VRT on device
+  ansible.builtin.command:
+    cmd: >-
+      ami_tool cfgmem_program
+      -d {{ device }}
+      -i /opt/amd/vrt/design.pdi
+      -t primary
+      -p 1
+  changed_when: true
+  when:
+    - aved_devices is defined
+    # Check if it is a list (iterable, but not string or dict (mapping))
+    - aved_devices is not string
+    - aved_devices is not mapping
+    - aved_devices is iterable
+    - (aved_vrt_devices | length) > 0
+  loop: "{{ aved_vrt_devices }}"
+  loop_control:
+    loop_var: device

@@ -1,0 +1,12 @@
+---
+
+aved_prebuilt_archive: amd_v80_gen5x8_25.1_xbtest_stress_20250820.zip
+
+aved_archives_path: /opt/downloads
+aved_install_path: /opt/amd/aved
+
+aved_vrt_package: amd-vrt_1.0.0_2025-10-10-09-11-15_amd64.deb
+
+# TODO: combine vrt_devices into the aved_devices
+aved_devices: []
+aved_vrt_devices: []
