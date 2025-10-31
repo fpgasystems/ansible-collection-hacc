@@ -1,0 +1,5 @@
+---
+
+# TODO: enforce the device format + normalize/sanatize it in the tasks
+rocm_devices: []
+rocm_allow_multiple_versions: false
