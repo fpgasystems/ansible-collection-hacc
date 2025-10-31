@@ -1,0 +1,68 @@
+---
+
+# Install prerequisites
+- name: Add the GitHub cli tool repository
+  ansible.builtin.import_tasks: ./add-github-cli-repo.yml
+
+- name: Install prerequisites
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - gh
+    - jq
+    - uncrustify
+
+# Install hdev
+- name: Install hdev
+  ansible.builtin.import_tasks: ./install_hdev.yml
+
+# Configure hdev
+- name: Copy over constants from hdev_constants_dir
+  ansible.builtin.copy:
+    src: "{{ hdev_constants_dir | fpga_systems.hacc.ensure_trailing_slash }}"
+    dest: "/opt/hdev/cli/constants"
+    remote_src: false
+  when:
+    - (hdev_constants_dir | default('')) | length > 0
+
+- name: Copy over cmdb from hdev_cmdb_dir
+  ansible.builtin.copy:
+    src: "{{ hdev_cmdb_dir | fpga_systems.hacc.ensure_trailing_slash }}"
+    dest: "/opt/hdev/cli/cmdb"
+    remote_src: false
+  when:
+    - (hdev_cmdb_dir | default('')) | length > 0
+
+# Set current node
+- name: Check which devices are available on current node
+  ansible.builtin.stat:
+    path: "/opt/hdev/cli/cmdb/{{ inventory_hostname }}/devices_{{ device_type }}"
+  register: node_devices
+  loop_control:
+    loop_var: device_type
+  loop:
+    - network
+    - acap_fpga
+    - gpu
+
+- name: Create symlink to device files of current node to root of hdev
+  ansible.builtin.file:
+    src: "/opt/hdev/cli/cmdb/{{ inventory_hostname }}/devices_{{ device_type }}"
+    dest: "/opt/hdev/cli/devices_{{ device_type }}"
+    owner: root
+    group: root
+    state: link
+    force: true
+  loop_control:
+    loop_var: device_type
+  loop:
+    - network
+    - acap_fpga
+    - gpu
+  when: >
+    (
+      node_devices.results
+      | selectattr('device_type', 'equalto', device_type)
+      | first
+    ).stat.exists | default(false)
