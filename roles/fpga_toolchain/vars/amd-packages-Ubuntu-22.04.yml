@@ -74,7 +74,6 @@ amd_fpga_toolchain_packages:
       - libgtk-3-dev
       - libxss-dev
       - libasound2
-      - compat-openssl10
       - fdisk
 
   '2024.1':
