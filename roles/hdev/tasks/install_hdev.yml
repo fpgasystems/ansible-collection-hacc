@@ -40,14 +40,15 @@
     state: link
 
 - name: Transform .sh scripts to programs without extension and set permissions
-  ansible.builtin.block:
+  block:
     - name: Find all .sh files in the target cli directory
       ansible.builtin.find:
         paths: "/opt/hdev/cli"
         patterns: "*.sh"
         excludes: "hdev_completion.sh"
         recurse: true
-      register: sh_files
+        hidden: true
+      register: hdev_sh_files
     - name: Rename .sh scripts to programs without extension
       ansible.builtin.copy:
         src: "{{ item.path }}"
@@ -56,14 +57,14 @@
         owner: root
         group: root
         mode: '0755'
-      loop: "{{ sh_files.files }}"
-      when: sh_files.matched > 0
+      loop: "{{ hdev_sh_files.files }}"
+      when: hdev_sh_files.matched > 0
     - name: Remove the .sh files
       ansible.builtin.file:
         path: "{{ item.path }}"
         state: absent
-      loop: "{{ sh_files.files }}"
-      when: sh_files.matched > 0
+      loop: "{{ hdev_sh_files.files }}"
+      when: hdev_sh_files.matched > 0
 
 - name: Add hdev to system-wide PATH
   ansible.builtin.copy:
