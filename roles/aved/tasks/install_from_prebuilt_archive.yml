@@ -14,15 +14,18 @@
       and copy it over to {{ aved_archives_path }}.
   when: not aved_stat_prebuilt_archive.stat.exists
 
-- name: Ensure pre-built archive extraction dir is present
-  ansible.builtin.file:
-    path: "{{ aved_install_path }}"
-    state: directory
-
 - name: Set extracted prebuilt archive path fact
   ansible.builtin.set_fact:
     aved_archive_install_path: >-
       {{ aved_install_path }}/{{ aved_prebuilt_archive.split('.')[:-1] | join('.') }}
+
+- name: Ensure pre-built archive extraction dir is present
+  ansible.builtin.file:
+    path: "{{ aved_archive_install_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
 
 - name: Extract pre-built archive
   ansible.builtin.unarchive:
