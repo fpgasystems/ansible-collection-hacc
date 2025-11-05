@@ -49,7 +49,7 @@
 - name: Fail when no or more than one ami deb packages are found
   ansible.builtin.fail:
     msg: >-
-      {% if aved_found_ami_deb.mathced > 1 %}Multiple{% else %}No{% endif %}
+      {% if aved_found_ami_deb.matched > 1 %}Multiple{% else %}No{% endif %}
       ami_*.deb pacakges found.
   when: aved_found_ami_deb.matched != 1
 
@@ -69,7 +69,7 @@
 - name: Fail when no or more than one xbtest deb packages are found
   ansible.builtin.fail:
     msg: >-
-      {% if aved_found_xbtest_deb.mathced > 1 %}Multiple{% else %}No{% endif %}
+      {% if aved_found_xbtest_deb.matched > 1 %}Multiple{% else %}No{% endif %}
       xbtest_*.deb pacakges found.
   when: aved_found_xbtest_deb.matched != 1
 
