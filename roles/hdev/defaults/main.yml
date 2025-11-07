@@ -3,3 +3,7 @@
 hdev_version: "main"
 hdev_constants_dir: ""
 hdev_cmdb_dir: ""
+
+hdev_config_dir: "/etc/hdev"
+hdev_bmc_username: ""
+hdev_bmc_password: ""

@@ -73,9 +73,46 @@
     src: "/opt/hdev/cli/hdev"
     owner: root
     group: root
-    mode: '751'
+    mode: '755'
 
 - name: Export CLI_PATH to environment variables
   ansible.builtin.lineinfile:
-    path: "/etc/bash.bashrc"
+    path: "/etc/profile.d/hdev.sh"
+    regexp: '^export CLI_PATH='
     line: "export CLI_PATH=/opt/hdev/cli"
+    create: true
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Enable running login.sh at login
+  ansible.builtin.lineinfile:
+    path: "/etc/profile.d/hdev.sh"
+    regexp: '^sudo /opt/hdev/login/login.sh'
+    line: 'sudo /opt/hdev/login/login.sh'
+
+- name: Ensure config dir for hdev is present
+  ansible.builtin.file:
+    path: "{{ hdev_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Export HDEV_CONFIG_DIR to environment variables
+  ansible.builtin.lineinfile:
+    path: "/etc/profile.d/hdev.sh"
+    regexp: '^export HDEV_CONFIG_DIR='
+    line: "export HDEV_CONFIG_DIR={{ hdev_config_dir }}"
+
+- name: Ensure BMC credentials are present
+  ansible.builtin.copy:
+    content: |-
+      #!/bin/bash
+
+      export BMC_USERNAME="{{ hdev_bmc_username }}"
+      export BMC_PASSWORD="{{ hdev_bmc_password }}"
+    dest: "{{ hdev_config_dir }}/bmc-credentials.sh"
+    owner: root
+    group: root
+    mode: '0700'
