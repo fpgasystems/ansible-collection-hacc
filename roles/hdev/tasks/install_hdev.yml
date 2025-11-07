@@ -66,10 +66,14 @@
       loop: "{{ hdev_sh_files.files }}"
       when: hdev_sh_files.matched > 0
 
-- name: Add hdev to system-wide PATH
-  ansible.builtin.copy:
-    dest: "/etc/profile.d/hdev.sh"
-    content: 'PATH=$PATH:/opt/hdev/cli'
+- name: Create a symlink to hdev in /usr/local/bin
+  ansible.builtin.file:
+    path: "/usr/local/bin/hdev"
+    state: link
+    src: "/opt/hdev/cli/hdev"
+    owner: root
+    group: root
+    mode: '751'
 
 - name: Export CLI_PATH to environment variables
   ansible.builtin.lineinfile:
