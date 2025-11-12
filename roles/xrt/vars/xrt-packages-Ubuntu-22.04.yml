@@ -1,0 +1,52 @@
+---
+
+xrt_prerequisites:
+  - libboost-filesystem1.74.0
+  - libboost-program-options1.74.0
+
+xrt_packages:
+  '2025.1':
+    xrt:
+      url: https://download.amd.com/opendownload/xrt/
+      package: xrt_202420.2.18.179_22.04-amd64-xrt.deb
+      checksum_sha256: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
+
+  '2024.2':
+    xrt:
+      url: https://download.amd.com/opendownload/xrt/
+      package: xrt_202420.2.18.179_22.04-amd64-xrt.deb
+      checksum_sha256: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
+    boards:
+      - u50d:
+          deployment:
+            url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+            archive: xilinx-u50-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz
+            package:
+              - xilinx-cmc-u50_1.0.40-3398385_all.deb
+              - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
+              - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
+              - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
+
+  '2024.1':
+    xrt:
+      url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+      package: xrt_202410.2.17.319_22.04-amd64-xrt.deb
+      checksum_sha256: sha256:fedf5ca03fc041e955b9cf77509174b4ce222630e440cd6ec1179443c5a3d600
+
+  '2023.2':
+    xrt:
+      url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+      package: xrt_202320.2.16.204_22.04-amd64-xrt.deb
+      checksum_sha256: sha256:144873c762a5218a6e9d79934818edc80b5b95bbb3e6d92f9eddaaa76d60521a
+
+  '2023.1':
+    xrt:
+      url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+      package: xrt_202310.2.15.225_20.04-amd64-xrt.deb
+      checksum_sha256: sha256:bd5f6eba1d2facd373670751b522271a657c42267164860413de2e959224b257
+
+  '2022.2':
+    xrt:
+      url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+      package: xrt_202220.2.14.354_22.04-amd64-xrt.deb
+      checksum_sha256: sha256:00f62fbf3e3b4972df96eb0a73191765f9a004c9cf86df9dff70450b32ccdbe0

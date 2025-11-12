@@ -1,0 +1,21 @@
+---
+
+galaxy_info:
+  author: Geert Roks
+  description: >-
+    Manages the installation of XRT for AMD FPGAs
+  company: ETH Zürich - Systems Group
+
+  license: MIT
+
+  min_ansible_version: 2.15
+
+  galaxy_tags: []
+    # List tags for your role here, one per line. A tag is a keyword that describes
+    # and categorizes the role. Users find roles by searching for tags. Be sure to
+    # remove the '[]' above, if you add tags to this list.
+    #
+    # NOTE: A tag is limited to a single word comprised of alphanumeric characters.
+    #       Maximum 20 tags per role.
+
+dependencies: []

@@ -1,0 +1,193 @@
+---
+
+# LOAD VARIABLES
+
+- name: "Load the amd packages dictionary for the target distribution"
+  ansible.builtin.include_vars: >-
+    xrt-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml
+
+
+# USER INPUT VALIDATION
+
+# Normalizing refers to filling in all attributes with defaults for the ones
+# that were not set by the user
+- name: Normalize amd_apm_releases variable
+  ansible.builtin.set_fact:
+    xrt_releases_normalized: >-
+      {{ xrt_releases | map('fpga_systems.hacc.xrt_normalize_releases_list') | list }}
+
+- name: Assert that the normalized releases list is as long as the user entered list
+  ansible.builtin.assert:
+    that: (xrt_releases | length) == (xrt_releases_normalized | length)
+
+- name: Assert that there are no duplicate releases in the amd_apm_releases variable
+  ansible.builtin.assert:
+    that: >-
+      (xrt_releases_normalized | map(attribute='release') | list | unique | length) ==
+      (xrt_releases_normalized | length)
+    fail_msg: >-
+      Multiple definitions of the same release detected in the xrt_releases variable!
+      Please define each release only once.
+
+# DETERMINE WHAT NEEDS TO BE DONE
+- name: Gather directories of currently installed XRT releases
+  ansible.builtin.find:
+    paths:
+      - "{{ xrt_install_path }}"
+    file_type: directory
+  register: xrt_found_dirs
+
+- name: Determine for which releases XRT is already present
+  ansible.builtin.set_fact:
+    xrt_releases_with_xrt_dir_present: >-
+      {{
+        xrt_found_dirs.files
+        | map(attribute='path')
+        | select("match", xrt_install_path + "/\d{4}\.\d")
+        | map('regex_search', '(\d{4}\.\d)')
+        | list
+        | unique
+      }}
+
+- name: Determine what to do for each release
+  ansible.builtin.set_fact:
+    xrt_releases_to_install: >-
+      {{
+        xrt_releases_normalized
+        | selectattr('state', 'eq', 'present')
+        | rejectattr('release', 'in', xrt_releases_with_xrt_dir_present)
+        | map(attribute='release')
+        | list
+      }}
+    xrt_releases_to_uninstall: >-
+      {{
+        xrt_releases_normalized
+        | selectattr('state', 'eq', 'absent')
+        | map(attribute='release')
+        | list
+      }}
+    xrt_releases_already_correct: >-
+      {{
+        xrt_releases_normalized
+        | selectattr('state', 'eq', 'present')
+        | selectattr('release', 'in', xrt_releases_with_xrt_dir_present)
+        | map(attribute='release')
+        | list
+      }}
+
+- name: Mark dangling releases for uninstallation
+  ansible.builtin.set_fact:
+    xrt_releases_to_uninstall: >-
+      {{
+        (xrt_releases_to_uninstall + xrt_releases_with_xrt_dir_present)
+        | reject('in', xrt_releases_to_install + xrt_releases_already_correct)
+        | list
+        | unique
+      }}
+  when: xrt_uninstall_dangling_releases
+
+- name: Print overview of what needs to be done
+  ansible.builtin.debug:
+    msg: "{{ xrt_state_overview.splitlines() }}"
+  vars:
+    xrt_state_overview: |-
+      releases with xrt already present:  {{ xrt_releases_with_xrt_dir_present }}
+      releases requested to be present:   {{ xrt_releases_normalized
+        | selectattr('state', 'eq', 'present')
+        | map(attribute='release')
+        | list
+      }}
+      releases requested to be absent:    {{
+        xrt_releases_normalized
+        | selectattr('state', 'eq', 'absent')
+        | map(attribute='release')
+        | list
+      }}
+      ===========================================================================
+      releases already correct:           {{ xrt_releases_already_correct }}
+      releases to install:                {{ xrt_releases_to_install }}
+      releases to uninstall:              {{ xrt_releases_to_uninstall }}
+
+
+# REMOVE XRT
+
+- name: Uninstall XRT releases
+  ansible.builtin.file:
+    path: "{{ xrt_install_path }}/{{ release }}"
+    state: absent
+  loop: "{{ xrt_releases_to_uninstall }}"
+  loop_control:
+    loop_var: release
+
+- name: Remove XRT setup script to global .bashrc
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/xrt.sh
+    regexp: "^source {{ xrt_install_path }}/{{ xrt_release }}/opt/xilinx/xrt/setup.sh"
+    state: absent
+  loop: "{{ xrt_releases_to_uninstall }}"
+  loop_control:
+    loop_var: xrt_release
+
+# INSTALL XRT
+
+- name: Install XRT
+  ansible.builtin.include_tasks: ./xrt-install.yml
+  loop: >-
+    {{
+      xrt_releases
+      | selectattr('release', 'in', xrt_releases_to_install)
+    }}
+  loop_control:
+    loop_var: xrt_release
+
+# POST INSTALL
+
+- name: Add XRT setup script to bash profile
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/xrt.sh
+    line: "source {{ xrt_install_path }}/{{ xrt_release }}/opt/xilinx/xrt/setup.sh"
+    regexp: '^source .*/opt/xilinx/xrt/setup.sh'
+    create: true
+    owner: root
+    group: root
+    mode: '0755'
+  vars:
+    xrt_release: >-
+      {{ ((xrt_releases_already_correct + xrt_releases_to_install) | first) }}
+  when:
+    - xrt_set_bash_environment_variables
+    - (xrt_releases_already_correct + xrt_releases_to_install ) | length == 1
+
+- name: Remove XRT setup script from bash profile
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/xrt.sh
+    regexp: '^source .*/opt/xilinx/xrt/setup.sh'
+    state: absent
+  when: >-
+    not xrt_set_bash_environment_variables or
+    (xrt_releases_already_correct + xrt_releases_to_install ) | length != 1
+
+# 4) Install deployement targets
+# TODO: create deployment targets tasks
+#- set_fact:
+#    xilinx_deployment_package_name:
+#      - xilinx-cmc-u50_1.0.40-3398385_all.deb
+#      - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
+#      - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
+#      - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
+#
+#- apt:
+#    deb: "{{ amd_apm_download_path }}/Deployment_Target_Platforms/{{ item }}"
+#    state: present
+#  loop: "{{ xilinx_deployment_package_name }}"
+
+# 5) Install development targets
+# TODO: create development targets tasks
+#- set_fact:
+#    xilinx_development_package_name:
+#      - xilinx-u50-gen3x16-xdma-5-202210-1-dev_1-3499627_all.deb
+#
+#- apt:
+#    deb: "{{ amd_apm_download_path }}/Development_Target_Platforms/{{ item }}"
+#    state: present
+#  loop: "{{ xilinx_development_package_name }}"

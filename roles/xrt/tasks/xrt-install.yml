@@ -1,0 +1,44 @@
+---
+
+- name: Set XRT package facts
+  ansible.builtin.set_fact:
+    xrt_package: "{{ xrt_packages[xrt_release.release]['xrt']['package'] }}"
+    xrt_checksum: "{{ xrt_packages[xrt_release.release]['xrt']['checksum_sha256'] }}"
+
+- name: Set XRT release path facts
+  ansible.builtin.set_fact:
+    xrt_release_install_path: "{{ xrt_install_path }}/{{ xrt_release.release }}"
+    xrt_package_path: "{{ xrt_download_path }}/{{ xrt_release.release }}/{{ xrt_package }}"
+
+
+# DOWNLOAD
+
+- name: Ensure XRT package exists
+  ansible.builtin.file:
+    path: "{{ xrt_package_path }}"
+    state: file
+
+# - name: Download XRT package
+#   ansible.builtin.get_url:
+#     url: "{{ amd_apm_xrt_download_url }}{{ amd_apm_xrt_package }}"
+#     dest: "{{ amd_apm_xrt_download_path }}"
+
+
+# INSTALL
+- name: Install prerequisites
+  ansible.builtin.apt:
+    name: "{{ xrt_prerequisites }}"
+    state: present
+
+- name: Ensure XRT release install directory exists
+  ansible.builtin.file:
+    path: "{{ xrt_release_install_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Install XRT package in release directory
+  ansible.builtin.command:
+    cmd: "dpkg-deb -x {{ xrt_package_path }} {{ xrt_release_install_path }}"
+  changed_when: true
