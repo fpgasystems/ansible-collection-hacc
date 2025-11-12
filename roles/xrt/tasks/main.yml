@@ -167,19 +167,35 @@
     not xrt_set_bash_environment_variables or
     (xrt_releases_already_correct + xrt_releases_to_install ) | length != 1
 
-# 4) Install deployement targets
-# TODO: create deployment targets tasks
-#- set_fact:
-#    xilinx_deployment_package_name:
-#      - xilinx-cmc-u50_1.0.40-3398385_all.deb
-#      - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
-#      - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
-#      - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
-#
-#- apt:
-#    deb: "{{ amd_apm_download_path }}/Deployment_Target_Platforms/{{ item }}"
-#    state: present
-#  loop: "{{ xilinx_deployment_package_name }}"
+# REMOVE DEPLOYMENT TARGETS
+
+- name: Remove XRT deployment targets
+  ansible.builtin.include_tasks: ./deployment-remove.yml
+  loop: "{{ xrt_releases_to_uninstall }}"
+  loop_control:
+    loop_var: xrt_release
+
+# REMOVE DEVELOPMENT TARGETS
+
+- name: Remove XRT development targets
+  ansible.builtin.include_tasks: ./development-remove.yml
+  loop: "{{ xrt_releases_to_uninstall }}"
+  loop_control:
+    loop_var: xrt_release
+
+# INSTALL DEPLOYMENT TARGETS
+- name: Install XRT deployment targets
+  include_tasks: ./deployment-install.yml
+  loop: "{{ xrt_releases_to_install + xrt_releases_already_correct }}"
+  loop_control:
+    loop_var: xrt_release
+
+# INSTALL DEVELPOMENT TARGETS
+- name: Install XRT development targets
+  include_tasks: ./development-install.yml
+  loop: "{{ xrt_releases_to_install + xrt_releases_already_correct }}"
+  loop_control:
+    loop_var: xrt_release
 
 # 5) Install development targets
 # TODO: create development targets tasks

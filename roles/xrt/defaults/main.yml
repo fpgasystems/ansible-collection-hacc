@@ -6,6 +6,8 @@
 #     state: present/absent
 xrt_releases: []
 
+xrt_devices: []
+
 xrt_install_path: /opt/amd/xrt
 xrt_download_path: /opt/amd/downloads
 

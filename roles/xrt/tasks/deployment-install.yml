@@ -1,0 +1,6 @@
+---
+
+- include_tasks: ./deployment-board-install.yml
+  loop: "{{ xrt_devices }}"
+  loop_control:
+    loop_var: xrt_device

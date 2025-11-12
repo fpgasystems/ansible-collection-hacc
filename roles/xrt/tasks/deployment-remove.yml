@@ -1,0 +1,21 @@
+---
+
+# TODO: add option for 'deep clean' that removes all boards,
+#       and have by default only the devices removed that are
+#       in xrt_devices
+- name: Gather Deployment targets of all boards for removal
+  ansible.builtin.set_fact:
+    xrt_deployment_targets_to_remove: >-
+      {{
+        xrt_packages[xrt_release]['boards']
+        | map(attribute='deployment.packages')
+        | flatten
+      }}
+
+- name: Remove Deployment targets
+  ansible.builtin.apt:
+    name: "{{ package }}"
+    state: absent
+  loop: "{{ xrt_deployment_targets_to_remove }}"
+  loop_control:
+    loop_var: package

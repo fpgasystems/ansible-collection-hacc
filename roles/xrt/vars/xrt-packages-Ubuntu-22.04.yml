@@ -17,15 +17,37 @@ xrt_packages:
       package: xrt_202420.2.18.179_22.04-amd64-xrt.deb
       checksum_sha256: sha256:a78fca1fc155c37c9e6e8ff190253cf8f0731d42d282a91f3e7475613de5b46c
     boards:
-      - u50d:
-          deployment:
-            url: https://www.amd.com/bin/public/amdOpenDownload?filename=
-            archive: xilinx-u50-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz
-            package:
-              - xilinx-cmc-u50_1.0.40-3398385_all.deb
-              - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
-              - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
-              - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
+      - name: "u50d"
+        deployment:
+          url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+          archive: xilinx-u50-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz
+          packages:
+            - xilinx-cmc-u50_1.0.40-3398385_all.deb
+            - xilinx-u50-gen3x16-xdma-validate_5-3499627_all.deb
+            - xilinx-sc-fw-u50_5.2.20-1.6d4a0da_all.deb
+            - xilinx-u50-gen3x16-xdma-base_5-3499627_all.deb
+        development:
+          checksum_sha256: "48b50603af1d1c7e2a7f26e7ea8215ee18a1600f55df0e330a65e8728626d18c"
+          package: "xilinx-u50-gen3x16-xdma-5-202210-1-dev_1-3499627_all.deb"
+      - name: "u55c"
+        deployment:
+          url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+          archive: xilinx-u55c-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz
+          packages:
+            - xilinx-cmc-u55_1.5.25-3395704_all.deb
+            - xilinx-u55c-gen3x16-xdma-validate_3-3506150_all.deb
+            - xilinx-sc-fw-u55_7.1.23-1.4097d53_all.deb
+            - xilinx-u55c-gen3x16-xdma-base_3-3494559_all.deb
+      - name: "u250"
+        deployment:
+          url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+          archive: xilinx-u250-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz
+          packages:
+            - xilinx-cmc-u200-u250_1.2.23-3395909_all.deb
+            - xilinx-sc-fw-u200-u250_4.6.21-1.fd1b20d_all.deb
+            - xilinx-u250-gen3x16-base_4-3494623_all.deb
+            - xilinx-u250-gen3x16-xdma-shell_4.1-3494623_all.deb
+            - xilinx-u250-gen3x16-xdma-validate_4.1-3512975_all.deb
 
   '2024.1':
     xrt:
@@ -38,6 +60,17 @@ xrt_packages:
       url: https://www.amd.com/bin/public/amdOpenDownload?filename=
       package: xrt_202320.2.16.204_22.04-amd64-xrt.deb
       checksum_sha256: sha256:144873c762a5218a6e9d79934818edc80b5b95bbb3e6d92f9eddaaa76d60521a
+    boards:
+      - name: "u280"
+        deployment:
+          url: https://www.amd.com/bin/public/amdOpenDownload?filename=
+          archive: xilinx-u280-gen3x16-xdma_2023.2_2023_1014_0238-all.deb.tar.gz
+          packages:
+            - xilinx-cmc-u280_1.3.5-3592445_all.deb
+            - xilinx-u280-gen3x16-xdma-validate_1-3585755_all.deb
+            - xilinx-sc-fw-u280_4.3.28-1.ea1b92f_all.deb
+            - xilinx-u280-gen3x16-xdma-base_1-3585717_all.deb
+
 
   '2023.1':
     xrt:
