@@ -6,28 +6,20 @@
   ansible.builtin.include_vars: >-
     xrt-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml
 
+- name:
+  ansible.builtin.deb822_repository:
+    name: xilinx_xrt
+    types: [deb]
+    uris: https://packages.xilinx.com/artifactory/debian-packages
+    suites: "{{ ansible_lsb.codename }}"
+    components: [main]
+    architectures: [amd64]
+    signed_by: https://www.xilinx.com/support/download/2020-2/xilinx-master-signing-key.asc
+    state: present
+    enabled: true
+  notify: Update apt cache
 
 # USER INPUT VALIDATION
-
-# Normalizing refers to filling in all attributes with defaults for the ones
-# that were not set by the user
-- name: Normalize xrt_releases variable
-  ansible.builtin.set_fact:
-    xrt_releases_normalized: >-
-      {{ xrt_releases | map('fpga_systems.hacc.xrt_normalize_releases_list') | list }}
-
-- name: Assert that the normalized releases list is as long as the user entered list
-  ansible.builtin.assert:
-    that: (xrt_releases | length) == (xrt_releases_normalized | length)
-
-- name: Assert that there are no duplicate releases in the xrt_releases variable
-  ansible.builtin.assert:
-    that: >-
-      (xrt_releases_normalized | map(attribute='release') | list | unique | length) ==
-      (xrt_releases_normalized | length)
-    fail_msg: >-
-      Multiple definitions of the same release detected in the xrt_releases variable!
-      Please define each release only once.
 
 - name: Check the given xrt_device
   ansible.builtin.assert:

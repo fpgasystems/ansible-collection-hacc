@@ -4,7 +4,9 @@
 # xrt_releases:
 #   - release: "YYYY.x" eg. 2024.2
 #     state: present/absent
-xrt_releases: []
+xrt_release: null
+xrt_deployment_targets: true
+xrt_development_targets: false
 
 xrt_devices: []
 
@@ -14,9 +16,3 @@ xrt_download_path: /opt/amd/downloads
 xrt_uninstall_dangling_releases: false
 xrt_set_bash_environment_variables: true
 
-# options:
-#   - latest:     the latest installed xrt version (even if not defined in the xrt_releases)
-#   - <release>:  The defined release
-#   - absent:     Don't install
-xrt_deployment_target: "latest"
-xrt_development_target: "absent"
