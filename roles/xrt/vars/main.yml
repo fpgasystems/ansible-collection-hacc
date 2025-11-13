@@ -1,2 +1,8 @@
 ---
 
+xrt_supported_devices:
+  - "u250"
+  - "u280"
+  - "u50d"
+  - "u55c"
+  - "vck5000"

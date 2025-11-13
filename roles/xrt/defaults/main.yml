@@ -13,3 +13,10 @@ xrt_download_path: /opt/amd/downloads
 
 xrt_uninstall_dangling_releases: false
 xrt_set_bash_environment_variables: true
+
+# options:
+#   - latest:     the latest installed xrt version (even if not defined in the xrt_releases)
+#   - <release>:  The defined release
+#   - absent:     Don't install
+xrt_deployment_target: "latest"
+xrt_development_target: "absent"

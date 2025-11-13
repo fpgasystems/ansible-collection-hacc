@@ -5,10 +5,38 @@ class FilterModule(object):
     def filters(self):
         return {
             'xrt_normalize_releases_list': self.normalize_releases_list,
-            'xrt_get_newest_release': self.get_newest_release
+            'xrt_get_latest_release': self.get_latest_release,
+            'xrt_pick_target': self.pick_target
         }
 
-    def get_newest_release(self, items):
+    def pick_target(self, releases, target):
+        """
+        Choose the appropriate deployment/development target version.
+
+        Args:
+            releases (list): list of release entries (strings or dicts)
+            target (str): one of "latest", "absent", or a version string like "2024.2"
+
+        Returns:
+            str | None: the selected version string, or None if no valid match
+        """
+        if releases is None:
+            releases = []
+
+        if target == "absent":
+            return None
+
+        if target == "latest":
+            return self.get_latest_release(releases) if releases else None
+
+        # Match regex: YYYY.X (year + single digit)
+        if re.match(r"^\d{4}\.\d$", to_text(target)):
+            return target
+
+        # Otherwise invalid
+        return None
+
+    def get_latest_release(self, items):
 
         def parse_release(release_str):
             """Parse a release string 'YYYY.X' into a tuple (year, minor)."""
@@ -19,12 +47,10 @@ class FilterModule(object):
                 raise AnsibleFilterError(f"Invalid release format '{release_str}': {e}")
 
         if not isinstance(items, list):
-            raise AnsibleFilterError("Input must be a list of dictionaries")
+            raise AnsibleFilterError("Input must be a list of release strings")
 
         try:
-            return max(items, key=lambda x: parse_release(x['release']))
-        except KeyError:
-            raise AnsibleFilterError("Each item must have a 'release' attribute")
+            return max(items, key=lambda x: parse_release(x))
         except ValueError:
             raise AnsibleFilterError("List is empty or releases are invalid")
 

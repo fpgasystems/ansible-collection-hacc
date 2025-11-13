@@ -1,6 +1,36 @@
 ---
 
-- ansible.builtin.include_tasks: ./development-board-install.yml
-  loop: "{{ xrt_devices }}"
-  loop_control:
-    loop_var: xrt_device
+## Expected variables:
+#   xrt_device: the name of the fpga device as defined in the xrt_packages
+#   xrt_release: the release of the XRT development package
+
+- name: Gather Development target to install
+  ansible.builtin.set_fact:
+    xrt_device_release: >-
+      {{
+        (xrt_packages[xrt_release]['boards']
+        | selectattr('name', 'eq', xrt_device)
+        | list | first)['development']
+      }}
+
+- name: Get stats for development package
+  ansible.builtin.stat:
+    path: "{{ xrt_download_path }}/boards/{{ xrt_device_release.package }}"
+    checksum_algorithm: sha256
+    get_checksum: true
+  register: xrt_development_package_stats
+
+- name: Check if development package exists and validate checksum
+  ansible.builtin.assert:
+    that:
+      - xrt_development_package_stats.stat.exists
+      - xrt_development_package_stats.stat.checksum == xrt_device_release.checksum_sha256
+    fail_msg: >-
+      Either the development package is not found
+      ({{ xrt_download_path }}/boards/{{ xrt_device_release.package }}),
+      or its checksum is not correct.
+
+- name: Install board development package
+  ansible.builtin.apt:
+    deb: "{{ xrt_download_path }}/boards/{{ xrt_device_release.package }}"
+    state: present
