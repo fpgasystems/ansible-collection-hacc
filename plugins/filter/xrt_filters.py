@@ -1,13 +1,44 @@
 import re
 from ansible.errors import AnsibleFilterError
+from packaging.version import Version
 
 class FilterModule(object):
     def filters(self):
         return {
             'xrt_normalize_releases_list': self.normalize_releases_list,
             'xrt_get_latest_release': self.get_latest_release,
-            'xrt_pick_target': self.pick_target
+            'xrt_pick_target': self.pick_target,
+            'xrt_get_packages': self.get_packages_for_version
         }
+
+    def get_packages_for_version(self, items, target_version):
+        """
+        Given a list of dicts each containing version_min, version_max, and packages,
+        return the packages list corresponding to the target_version.
+        """
+
+        if not isinstance(items, list):
+            raise AnsibleFilterError("Expected a list of versioned package definitions")
+
+        try:
+            target = Version(str(target_version))
+        except Exception as e:
+            raise AnsibleFilterError(f"Invalid target version '{target_version}': {e}")
+
+        for entry in items:
+            try:
+                vmin = Version(str(entry["version_min"]))
+                vmax = Version(str(entry["version_max"]))
+            except KeyError as e:
+                raise AnsibleFilterError(f"Missing key in entry: {e}")
+            except Exception as e:
+                raise AnsibleFilterError(f"Invalid version in entry: {e}")
+
+            if vmin <= target <= vmax:
+                return entry.get("packages", [])
+
+        # If no matching range found
+        raise AnsibleFilterError(f"No version range found covering {target_version}")
 
     def pick_target(self, releases, target):
         """

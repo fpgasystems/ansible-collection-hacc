@@ -4,7 +4,82 @@ xrt_prerequisites:
   - libboost-filesystem1.74.0
   - libboost-program-options1.74.0
 
+xrt_deployment_packages:
+  'u50d':
+    - version_min: "2.14.354"
+      version_max: "2.19.194"
+      packages:
+        - xilinx-cmc-u50=1.0.40-3398385
+        - xilinx-sc-fw-u50=5.2.20-1.6d4a0da
+        - xilinx-u50-gen3x16-xdma-base=5-3499627
+        - xilinx-u50-gen3x16-xdma-validate=5-3499627
+  'u55c':
+    - version_min: "2.14.354"
+      version_max: "2.19.194"
+      packages:
+        - xilinx-cmc-u55=1.5.25-3395704
+        - xilinx-sc-fw-u55=7.1.23-1.4097d53
+        - xilinx-u55c-gen3x16-xdma-base=3-3494559
+        - xilinx-u55c-gen3x16-xdma-validate=3-3506150
+  'u250':
+    - version_min: "2.14.354"
+      version_max: "2.19.194"
+      packages:
+        - xilinx-cmc-u200-u250=1.2.23-3395909
+        - xilinx-sc-fw-u200-u250=4.6.21-1.fd1b20d
+        - xilinx-u250-gen3x16-base=4-3494623
+        - xilinx-u250-gen3x16-xdma-shell=4.1-3494623
+        - xilinx-u250-gen3x16-xdma-validate=4.1-3512975
+  'u280':
+    - version_min: "2.14.354"
+      version_max: "2.16.204"
+      packages:
+        - xilinx-cmc-u280=1.3.5-3592445
+        - xilinx-sc-fw-u280=4.3.28-1.ea1b92f
+        - xilinx-u280-gen3x16-xdma-base=1-3585717
+        - xilinx-u280-gen3x16-xdma-validate=1-3585755
+  'vck5000':
+    - version_min: "2.14.354"
+      version_max: "2.19.194"
+      packages:
+        - xilinx-vck5000-gen4x8-qdma-base=2-20221205
+
+xrt_development_packages:
+  'u50d':
+    - version_min: "2.14.354"
+      version_max: "2.19.194"
+      packages:
+        - xilinx-u50-gen3x16-xdma-5-202210-1-dev=1-3499627
+  'u55c':
+    - version_min: "2.14.354"
+      version_max: "2.19.194"
+      packages:
+        - xilinx-u55c-gen3x16-xdma-3-202210-1-dev=1-3514517
+  'u250':
+    - version_min: "2.14.354"
+      version_max: "2.19.194"
+      packages:
+        - xilinx-u250-gen3x16-xdma-4.1-202210-1-dev-1-3512975
+  'u280':
+    - version_min: "2.14.354"
+      version_max: "2.16.204"
+      packages:
+        - xilinx-u280-gen3x16-xdma-1-202211-1-dev=1-3585755
+  'vck5000':
+    - version_min: "2.14.354"
+      version_max: "2.19.194"
+      packages:
+        - xilinx-vck5000-gen4x8-qdma-2-202220-1-dev=1-20221205
+
 xrt_packages:
+  '2025.1': "2.19.194"
+  '2024.2': "2.18.179"
+  '2024.1': "2.17.319"
+  '2023.2': "2.16.204"
+  '2023.1': "2.15.225"
+  '2022.2': "2.14.354"
+
+xrt_pack:
   '2025.1':
     xrt:
       url: https://download.amd.com/opendownload/xrt/
