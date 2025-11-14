@@ -1,5 +1,19 @@
 ---
 
+# Block installation if AVED is installed
+- name: Check if 'ami' package is installed using apt
+  ansible.builtin.command: apt list --installed
+  register: xrt_apt_list
+  changed_when: false
+
+- name: Fail if 'ami' is installed
+  ansible.builtin.fail:
+    msg: >-
+      'ami' package is installed.
+      Please remove it before continuing.
+      AVED and XRT are mutually exclusive
+  when: xrt_apt_list.stdout is search("ami/")
+
 # LOAD VARIABLES
 
 - name: "Load the amd packages dictionary for the target distribution"
@@ -15,8 +29,8 @@
     components: [main]
     architectures: [amd64]
     signed_by: https://www.xilinx.com/support/download/2020-2/xilinx-master-signing-key.asc
-    state: present
-    enabled: true
+    state: "{{ 'present' if xrt_use_official_package_repo else 'absent' }}"
+    enabled: "{{ true if xrt_use_official_package_repo else false }}"
   notify: Update apt cache
 
 # USER INPUT VALIDATION
@@ -75,16 +89,25 @@
 
 # TODO: add the development files to a local repo
 - name: Install Development Target
-  ansible.builtin.apt:
-    name: "{{ xrt_development_packages_to_install }}"
-    state: "{{ 'present' if xrt_development_targets else 'absent' }}"
-    allow_downgrade: true
-  loop: "{{ xrt_devices }}"
-  loop_control:
-    loop_var: device
-  vars:
-    xrt_development_packages_to_install: "{{ xrt_development_packages[device]
-    | fpga_systems.hacc.xrt_get_packages(xrt_version) }}"
+  block:
+    - name: Try to install Development targets
+      ansible.builtin.apt:
+        name: "{{ xrt_development_packages_to_install }}"
+        state: "{{ 'present' if xrt_development_targets else 'absent' }}"
+        allow_downgrade: true
+      loop: "{{ xrt_devices }}"
+      loop_control:
+        loop_var: device
+      vars:
+        xrt_development_packages_to_install: "{{ xrt_development_packages[device]
+        | fpga_systems.hacc.xrt_get_packages(xrt_version) }}"
+  rescue:
+    - name: Failed to install Development targets
+      ansible.builtin.fail:
+        msg: >-
+          Failed to install development package.
+          Development packages are not in the official repo, so you need to
+          serve them using your own package repository. See the README for instructions
 
 
 # POST INSTALL

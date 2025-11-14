@@ -1,17 +1,12 @@
 ---
 
-# The xrt_releases list should contain dicts with the following format
-# xrt_releases:
-#   - release: "YYYY.x" eg. 2024.2
-#     state: present/absent
 xrt_release: null
+
 xrt_deployment_targets: true
 xrt_development_targets: false
 
+xrt_use_official_package_repo: true
+
 xrt_devices: []
 
-xrt_install_path: /opt/amd/xrt
-xrt_download_path: /opt/amd/downloads
-
-xrt_uninstall_dangling_releases: false
 xrt_set_bash_environment_variables: true
