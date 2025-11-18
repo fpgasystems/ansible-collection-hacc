@@ -7,81 +7,22 @@
   block:
     - name: Load release options
       ansible.builtin.set_fact:
-        release: "{{ (installed_releases | first )['release'] }}"
-        vivado_only: "{{ (installed_releases | first )['vivado_only'] }}"
+        release: "{{ (installed_releases | first)['release'] }}"
 
-    - name: Delete all bash 'source' entries that are not for this release
+    - name: Create profile for including bash environment for Vivado/Vitis/Model_composer/etc.
       ansible.builtin.lineinfile:
-        path: /etc/bash.bashrc
-        regexp: >-
-          ^source {{ amd_fpga_toolchain_install_path
-          }}/(?!{{ release }}/)[^/]+/(?!{{ release }}/)[^/]+/settings64.sh$
-        state: absent
-
-    - name: Delete all bash 'export' entries that are not for this release
-      ansible.builtin.lineinfile:
-        path: /etc/bash.bashrc
-        regexp: >-
-          ^export PATH={{ amd_fpga_toolchain_install_path
-          }}/(?!{{ release }}/)[^/]+/(?!{{ release }}/)[^/]+/bin:\$PATH$
-        state: absent
-
-    # Vivado is always installed
-    # Vitis_HLS also comes with Vivado
-    - name: Add Vivado source scripts to general bashrc
-      lineinfile:
-        path: /etc/bash.bashrc
-        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
-        line: >-
-          source
-          {{
-            amd_fpga_toolchain_install_path
-            | fpga_systems.hacc.tools_path(release, program)
-          }}/settings64.sh
+        path: /etc/profile.d/vivado.sh
+        regexp: '^source {{ amd_fpga_toolchain_install_path }}/[^/]+/[^/]+/settings64.sh'
+        line: 'source {{ amd_fpga_toolchain_install_path
+               | fpga_systems.hacc.tools_path(release, "Vivado") }}/settings64.sh'
         state: present
-      loop:
-        - "Vivado"
-        - "Vitis_HLS"
-      loop_control:
-        loop_var: program
-
-    # Vitis is only installed, when vivado_only == false
-    # Model Composer comes with Vitis
-    - name: Add Vitis source scripts to general bashrc
-      lineinfile:
-        path: /etc/bash.bashrc
-        insertbefore: '^source\s+/opt/xilinx/xrt/setup.sh'
-        line: >-
-          source
-          {{
-            amd_fpga_toolchain_install_path
-            | fpga_systems.hacc.tools_path(release, program)
-          }}/settings64.sh
-        state: >-
-          {{
-            'absent' if (vivado_only|bool) else 'present'
-          }}
-      loop:
-        - "Vitis"
-        - "Model_Composer"
-      loop_control:
-        loop_var: program
-
-    - name: Add Vitis Model Composer to system-wide PATH
-      lineinfile:
-        path: /etc/bash.bashrc
-        line: >-
-          export PATH={{
-            amd_fpga_toolchain_install_path
-            | fpga_systems.hacc.tools_path(release, "Model_Composer")
-          }}/bin:$PATH
-        state: >-
-          {{
-            'absent' if (vivado_only|bool) else 'present'
-          }}
+        owner: root
+        group: root
+        mode: '0755'
+        create: true
 
 - name: "INFO: `set_bash_environment_variables: true` is ignored"
-  debug:
+  ansible.builtin.debug:
     msg: >-
       amd_fpga_toolchain_set_bash_environment_variables is set to true,
       but this is ignored as there are more than one releases defined in
@@ -91,10 +32,8 @@
     - installed_releases | length > 1
     - amd_fpga_toolchain_set_bash_environment_variables
 
-- name: Delete all bash entries
-  when: >-
-    not amd_fpga_toolchain_set_bash_environment_variables or
-    (installed_releases | length > 1)
+# Make sure /etc/bash.bashrc does not contain any sourcing for Vivado
+- name: Delete all bash entries from general /etc/bash.bashrc
   ansible.builtin.lineinfile:
     path: /etc/bash.bashrc
     regexp: >-
@@ -102,14 +41,10 @@
       }}/[^/]+/[^/]+/settings64.sh$
     state: absent
 
-- name: Delete all bash 'export' entries
+- name: Delete bash variables profile for Vivado/Vitis/Model_Composer/etc.
+  ansible.builtin.file:
+    path: /etc/profile.d/vivado.sh
+    state: absent
   when: >-
     not amd_fpga_toolchain_set_bash_environment_variables or
     (installed_releases | length > 1)
-  ansible.builtin.lineinfile:
-    path: /etc/bash.bashrc
-    regexp: >-
-      ^export PATH={{ amd_fpga_toolchain_install_path
-      }}/[^/]+/[^/]+/bin:\$PATH$
-    state: absent
-
