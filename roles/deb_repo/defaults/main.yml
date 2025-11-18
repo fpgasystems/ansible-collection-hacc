@@ -1,0 +1,6 @@
+---
+
+deb_repo_install_path: /root/deb-repo
+deb_repo_packages_path: /root/debs
+
+deb_repo_server_port: "8080"

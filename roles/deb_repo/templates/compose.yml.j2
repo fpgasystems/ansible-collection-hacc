@@ -1,0 +1,11 @@
+---
+
+services:
+  deb-repo:
+    build: .
+    image: 'local-deb-repo'
+    ports:
+      - '{{ deb_repo_server_port }}:80'
+    volumes:
+      - './packages:/usr/share/nginx/html/deb-repo'
+      - './.gnupg:/root/.gnupg'

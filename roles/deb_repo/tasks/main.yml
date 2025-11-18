@@ -1,0 +1,95 @@
+---
+
+# TODO: write file permissions, so that the container can also be started by a non-root user
+
+- name: Ensure directory for docker files exists
+  ansible.builtin.file:
+    path: "{{ deb_repo_install_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Ensure directory for docker files exists
+  ansible.builtin.file:
+    path: "{{ deb_repo_install_path }}/packages"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Ensure directory for docker files exists
+  ansible.builtin.file:
+    path: "{{ deb_repo_install_path }}/.gnupg"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+  register: deb_repo_gpg_volume
+
+- name: Copy the package repository server Docker files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ deb_repo_install_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - "Dockerfile"
+    - "entrypoint.sh"
+  register: deb_repo_docker_copy
+
+- name: Copy the docker compose template
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ deb_repo_install_path }}/compose.yml"
+    owner: root
+    group: root
+    mode: '0755'
+  register: deb_repo_compose_copy
+
+- name: Set fact that notes if any docker files changed
+  ansible.builtin.set_fact:
+    deb_repo_docker_files_changed: >-
+      {{
+        deb_repo_compose_copy.changed or
+        deb_repo_gpg_volume.changed or
+        (deb_repo_docker_copy.results
+        | selectattr('changed', 'equalto', true)
+        | list | length > 0)
+      }}
+
+- name: Find the .deb packages
+  ansible.builtin.find:
+    paths: "{{ deb_repo_packages_path }}"
+    patterns: "*.deb"
+  register: deb_repo_packages
+
+- name: Ensure there are .deb files present
+  ansible.builtin.assert:
+    that:
+      - deb_repo_packages.files | length > 0
+    fail_msg: >-
+      No .deb packages found in the 'deb_repo_packages_path' ({{ deb_repo_packages_path }}).
+      Please add them manually on the remote server.
+
+- name: Copy .deb package files
+  ansible.builtin.copy:
+    src: "{{ package }}"
+    dest: "{{ deb_repo_install_path }}/packages/{{ package | basename }}"
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: true
+  loop: "{{ deb_repo_packages.files | map(attribute='path') | list }}"
+  loop_control:
+    loop_var: package
+  register: deb_repo_package_copy
+
+# TODO: remove files that are not in the packages_path anymore
+
+- name: Run docker compose (build + up)
+  community.docker.docker_compose_v2:
+    project_src: "{{ deb_repo_install_path }}"
+    state: "{{ 'restarted' if (deb_repo_package_copy.changed or
+      deb_repo_docker_files_changed) else 'present' }}"
