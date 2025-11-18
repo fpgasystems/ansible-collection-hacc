@@ -1,0 +1,20 @@
+---
+
+services:
+  license-server:
+    container_name: {{ flexnet_container_name }}
+    build:
+      context: .
+      args:
+        ZIP_FILE: {{ flexnet_server_file }}
+    image: 'flexnet-license-server'
+    hostname: {{ flexnet_hostname }}
+    # Let the docker container have full access to the network
+    # namespace of the host, to let is seem as if it were running
+    # direcly on the host
+    # Alternatively you could define a macvlan with the same
+    # mac address as the hostid in the license file. The hostid
+    # is defined on the SERVER line and has the colons ':' removed
+    network_mode: "host"
+    volumes:
+      - './licenses:/licenses'

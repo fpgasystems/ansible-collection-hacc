@@ -1,0 +1,79 @@
+---
+
+- name: Check that hostname is set
+  ansible.builtin.assert:
+    that:
+      - flexnet_hostname | length > 0
+
+- name: Ensure the install path exists
+  ansible.builtin.file:
+    path: "{{ flexnet_install_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Ensure the license directory exists
+  ansible.builtin.file:
+    path: "{{ flexnet_install_path }}/licenses"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy over the Flexnet license server Dockerfile
+  ansible.builtin.copy:
+    src: "Dockerfile"
+    dest: "{{ flexnet_install_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy over the Flexnet license server docker compose file
+  ansible.builtin.template:
+    src: "compose.yml.j2"
+    dest: "{{ flexnet_install_path }}/compose.yml"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy over Flexera license server archive
+  ansible.builtin.copy:
+    src: "{{ flexnet_server_file_path }}/{{ flexnet_server_file }}"
+    dest: "{{ flexnet_install_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: true
+
+- name: Find all .lic files
+  ansible.builtin.find:
+    paths: "{{ flexnet_licenses_path }}"
+    patterns: "*.lic"
+  register: flexnet_lic_files
+
+- name: Ensure the license files have the port set for the xilinxd daemon
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    line: 'VENDOR {{ flexnet_vendor_name }} PORT={{ flexnet_vendor_port }}'
+    regexp: '^VENDOR {{ flexnet_vendor_name }}'
+    state: present
+  loop: "{{ flexnet_lic_files.files | map(attribute='path') | list }}"
+
+- name: Copy over license files
+  ansible.builtin.copy:
+    src: "{{ flexnet_license_file }}"
+    dest: "{{ flexnet_install_path }}/licenses"
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: true
+  loop: "{{ flexnet_lic_files.files | map(attribute='path') | list }}"
+  loop_control:
+    loop_var: flexnet_license_file
+  register: flexnet_license_copy
+
+- name: Run docker compose (build + up)
+  community.docker.docker_compose_v2:
+    project_src: "{{ flexnet_install_path }}"
+    state: "{{ 'restarted' if flexnet_license_copy.changed else 'present' }}"

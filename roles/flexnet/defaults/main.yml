@@ -1,0 +1,12 @@
+---
+
+flexnet_hostname: ""
+flexnet_install_path: /root/flexnet-license-server
+flexnet_licenses_path: /root/licenses
+
+flexnet_server_file_path: /root
+flexnet_server_file: "linux__flexm_v11.17.2.0.zip"
+
+flexnet_container_name: flexnet-license-server
+flexnet_vendor_name: xilinxd
+flexnet_vendor_port: "2200"
