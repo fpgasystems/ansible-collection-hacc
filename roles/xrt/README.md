@@ -69,8 +69,7 @@ Example Playbook
 
 ```yaml
     - hosts: servers
-      vars_files:
-        - vars/amd_apm.yml
+
       roles:
         - role: fpga_systems.hacc.xrt
           vars:

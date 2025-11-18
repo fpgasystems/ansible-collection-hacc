@@ -14,7 +14,7 @@ The files should be organized in directories by release name. For example:
 /opt/amd/downloads/
 ├── 2024.2/
 │   ├── FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001.tar
-    └── FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001_Lin64.bin
+│   └── FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001_Lin64.bin
 └── 2024.1/
     ├── FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023.tar.gz
     ├── FPGAs_AdaptiveSoCs_Unified_2024.1_0522_2023_Lin64.bin
