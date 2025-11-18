@@ -1,6 +1,6 @@
 ---
 
-amd_fpga_toolchain_packages:
+fpga_toolchain_packages:
   '2025.1':
     archive:
       base:

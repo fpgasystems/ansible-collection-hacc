@@ -5,7 +5,8 @@
 
 # TODO: check if distribution is available, otherwise early exit
 - name: "Load the amd packages dictionary for the target distribution"
-  include_vars: "amd-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+  ansible.builtin.include_vars: >-
+      "fpga-toolchain-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
 
 
 # USER INPUT VALIDATION
@@ -13,30 +14,30 @@
 # TODO: compact into separate task file
 # Normalizing refers to filling in all attributes with defaults
 #  for the ones that were not set by the user
-- name: Normalize amd_fpga_toolchain_releases variable
-  set_fact:
-    amd_fpga_toolchain_releases_normalized: >-
-      {{ amd_fpga_toolchain_releases | map('fpga_systems.hacc.normalize_releases_list') | list }}
+- name: Normalize fpga_toolchain_releases variable
+  ansible.builtin.set_fact:
+    fpga_toolchain_releases_normalized: >-
+      {{ fpga_toolchain_releases | map('fpga_systems.hacc.normalize_releases_list') | list }}
 
 - name: Assert that the normalized releases list is as long as the user entered list
-  assert:
-    that: amd_fpga_toolchain_releases | length == amd_fpga_toolchain_releases_normalized | length
+  ansible.builtin.assert:
+    that: fpga_toolchain_releases | length == fpga_toolchain_releases_normalized | length
 
-- name: Assert that there are no duplicate releases in the amd_fpga_toolchain_releases variable
-  assert:
+- name: Assert that there are no duplicate releases in the fpga_toolchain_releases variable
+  ansible.builtin.assert:
     that: >-
       (
-        amd_fpga_toolchain_releases_normalized
+        fpga_toolchain_releases_normalized
         | map(attribute='release')
         | list
         | unique
         | length
       ) == (
-        amd_fpga_toolchain_releases_normalized
+        fpga_toolchain_releases_normalized
         | length
       )
     fail_msg: >-
-      Multiple definitions of the same release detected in the amd_fpga_toolchain_releases variable!
+      Multiple definitions of the same release detected in the fpga_toolchain_releases variable!
        Please define each release only once.
 
 
@@ -44,13 +45,13 @@
 
 # TODO: create module of this
 - name: Determine what needs to be done
-  include_tasks: determine_state.yml
+  ansible.builtin.include_tasks: determine_state.yml
 
 
 # REMOVE
 
 - name: Uninstall Vitis/Vivado releases
-  include_tasks: ./uninstall.yml
+  ansible.builtin.include_tasks: ./uninstall.yml
   loop: "{{ releases_to_uninstall }}"
   loop_control:
     loop_var: release
@@ -59,8 +60,8 @@
 # CHECK SPACE
 
 - name: Check disk space
-  include_tasks: check_disk_space.yml
-  when: not amd_fpga_toolchain_skip_disk_space_check
+  ansible.builtin.include_tasks: check_disk_space.yml
+  when: not fpga_toolchain_skip_disk_space_check
 
 
 # INSTALL
@@ -68,25 +69,25 @@
 - name: Setup License servers environment variable
   ansible.builtin.lineinfile:
     path: "/etc/bash.bashrc"
-    line: "export XILINXD_LICENSE_FILE={{ amd_fpga_toolchain_license_servers | join(':') }}"
-  when: amd_fpga_toolchain_license_servers | length > 0
+    line: "export XILINXD_LICENSE_FILE={{ fpga_toolchain_license_servers | join(':') }}"
+  when: fpga_toolchain_license_servers | length > 0
 
 - name: Install AMD Toolchain
-  include_tasks: "./install/using-{{ amd_fpga_toolchain_release.install_method }}.yml"
+  ansible.builtin.include_tasks: "./install/using-{{ fpga_toolchain_release.install_method }}.yml"
   loop: >-
     {{
-      amd_fpga_toolchain_releases_normalized
+      fpga_toolchain_releases_normalized
       | selectattr('release', 'in', releases_to_install)
     }}
   loop_control:
-    loop_var: amd_fpga_toolchain_release
+    loop_var: fpga_toolchain_release
 
 - name: Post installation tasks (set environment variables etc.)
   ansible.builtin.include_tasks: ./post-install.yml
   vars:
     installed_releases: >-
       {{
-        amd_fpga_toolchain_releases_normalized
+        fpga_toolchain_releases_normalized
         | selectattr('release', 'in', (releases_to_install+releases_already_correct))
       }}
 

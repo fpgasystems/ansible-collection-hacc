@@ -1,51 +1,35 @@
 ---
 
 ## Note: from release 2025.1 onwards, the installation layout changed.
-##  Up to 2024.2, the directory for a specific release was inside the directory for the program (eg. <install_path>/Vivado/2024.2)
-##  From 2025.1 onwards, all program directories are in a release directory (eg. <install_path>/2025.1/Vivado)
+#   Up to 2024.2, the directory for a specific release was inside the directory for the
+#   program (eg. <install_path>/Vivado/2024.2)
+#
+#   From 2025.1 onwards, all program directories are in a release directory
+#   (eg. <install_path>/2025.1/Vivado)
 ##
 
-- name: Uninstall tasks for releases up to 2024.2
+# TODO: use {{ fpga_toolchain_install_path }}/.xinstall/<release>/xsetup -b Uninstall instead
+
+- name: "[{{ release }}] Remove program files for releases <= 2024.2"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ fpga_toolchain_install_path }}/Vivado/{{ release }}"
+    - "{{ fpga_toolchain_install_path }}/Vitis_HLS/{{ release }}"
+    - "{{ fpga_toolchain_install_path }}/Vitis/{{ release }}"
+    - "{{ fpga_toolchain_install_path }}/Model_Composer/{{ release }}"
   when: (release.split('.')[0] | int) <= 2024
-  block:
-    - name: "[Uninstall {{ release }}] Remove program files"
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "{{ amd_fpga_toolchain_install_path }}/Vivado/{{ release }}"
-        - "{{ amd_fpga_toolchain_install_path }}/Vitis_HLS/{{ release }}"
-        - "{{ amd_fpga_toolchain_install_path }}/Vitis/{{ release }}"
-        - "{{ amd_fpga_toolchain_install_path }}/Model_Composer/{{ release }}"
 
-    - name: "[Uninstall {{ release }}] Remove bash source scripts"
-      lineinfile:
-        path: /etc/bash.bashrc
-        regexp: '^source\s+{{ amd_fpga_toolchain_install_path }}/[^/]+/{{ release }}/settings64\.sh'
-        state: absent
-
-    - name: "[Uninstall {{ release }}] Remove Model Composer from PATH"
-      lineinfile:
-        path: /etc/bash.bashrc
-        regexp: '^export\s+PATH={{ amd_fpga_toolchain_install_path }}/Model_Composer/{{ release }}/bin:\$PATH'
-        state: absent
-
-- name: Uninstall tasks for releases from 2025.1 and onwards
+- name: "[{{ release }}] Remove program files for releases >=2025.1"
+  ansible.builtin.file:
+    path: "{{ fpga_toolchain_install_path }}/{{ release }}"
+    state: absent
   when: (release.split('.')[0] | int) >= 2025
-  block:
-    - name: "[Uninstall {{ release }}] Remove program files"
-      file:
-        path: "{{ amd_fpga_toolchain_install_path }}/{{ release }}"
-        state: absent
 
-    - name: "[Uninstall {{ release }}] Remove bash source scripts"
-      lineinfile:
-        path: /etc/bash.bashrc
-        regexp: '^source\s+{{ amd_fpga_toolchain_install_path }}/{{ release }}/[^/]+/settings64\.sh'
-        state: absent
-
-    - name: "[Uninstall {{ release }}] Remove Model Composer from PATH"
-      lineinfile:
-        path: /etc/bash.bashrc
-        regexp: '^export\s+PATH={{ amd_fpga_toolchain_install_path }}/{{ release }}/Model_Composer/bin:\$PATH'
-        state: absent
+- name: "[{{ release }}] Remove bash source scripts"
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/vivado.sh
+    regexp: '^source {{ fpga_toolchain_install_path
+           | fpga_systems.hacc.tools_path(release, "Vivado") }}/settings64.sh'
+    state: absent

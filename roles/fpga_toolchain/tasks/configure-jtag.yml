@@ -4,18 +4,18 @@
   ansible.builtin.set_fact:
     fpga_toolchain_newest_release: >-
       {{
-        (amd_fpga_toolchain_releases | fpga_systems.hacc.get_newest_release)['release']
+        (fpga_toolchain_releases | fpga_systems.hacc.get_newest_release)['release']
       }}
 
 - name: Enable JTAG
-  when: amd_fpga_toolchain_enable_jtag
+  when: fpga_toolchain_enable_jtag
   block:
     - name: Install udev rules for JTAG
       ansible.builtin.copy:
         remote_src: true
         src: >-
           {{
-            amd_fpga_toolchain_install_path
+            fpga_toolchain_install_path
             | fpga_systems.hacc.tools_path(fpga_toolchain_newest_release, "Vivado")
           }}/data/xicom/cable_drivers/lin64/install_script/install_drivers/{{ item }}
         dest: "/etc/udev/rules.d/{{ item }}"
@@ -30,7 +30,7 @@
       fpga_systems.hacc.copy_with_lineinfile:
         src: >-
           {{
-            amd_fpga_toolchain_install_path
+            fpga_toolchain_install_path
             | fpga_systems.hacc.tools_path(fpga_toolchain_newest_release, "Vivado")
           }}/data/xicom/cable_drivers/lin64/install_script/install_drivers/{{ item }}
         dest: "/etc/udev/rules.d/{{ item }}"
@@ -40,7 +40,7 @@
         regexp: '^ACTION=="add", ATTRS\{idVendor\}=="0403"'
         line: >-
           ACTION=="add", ATTRS{idVendor}=="0403", ATTRS\{manufacturer\}=="Xilinx",
-          MODE:="664", GROUP:="{{ amd_fpga_toolchain_jtag_group }}"
+          MODE:="664", GROUP:="{{ fpga_toolchain_jtag_group }}"
       loop:
         - 52-xilinx-ftdi-usb.rules
 
@@ -48,7 +48,7 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
-  when: not amd_fpga_toolchain_enable_jtag
+  when: not fpga_toolchain_enable_jtag
   loop:
     - /etc/udev/rules.d/52-xilinx-ftdi-usb.rules
     - /etc/udev/rules.d/52-xilinx-digilent-usb.rules

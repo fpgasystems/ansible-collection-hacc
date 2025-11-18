@@ -2,11 +2,11 @@
 
 # TODO: check if 300GB and 100GB are correct or too conservative
 #       for vivado_only: False and vivado_only: True respectively
-- name: "Calculate the disk space that is needed for the install of all releases (100GB per release with 'vivado_only: True', 300GB per release with 'vivado_only: False')"
+- name: Calculate the disk space that is needed for the install of all releases
   set_fact:
-    amd_fpga_toolchain_requested_disk_space_GB: >-
+    fpga_toolchain_requested_disk_space_GB: >-
       {{
-        amd_fpga_toolchain_releases_normalized
+        fpga_toolchain_releases_normalized
         | selectattr('release', 'in', releases_to_install)
         | map(attribute='vivado_only')
         | map('ternary', 100, 300)
@@ -15,24 +15,24 @@
 
 - name: Find the mount point of the installation path
   set_fact:
-    amd_fpga_toolchain_install_mount_point: >-
+    fpga_toolchain_install_mount_point: >-
       {{
         ansible_mounts
-        | selectattr('mount', 'in', amd_fpga_toolchain_install_path)
+        | selectattr('mount', 'in', fpga_toolchain_install_path)
         | sort(attribute='mount', reverse=true)
         | first
       }}
 
-- name: "Assert that there is enough disk space"
+- name: Assert that there is enough disk space
   assert:
     that: >-
-      amd_fpga_toolchain_install_mount_point.size_available | int
-      is gt ( amd_fpga_toolchain_requested_disk_space_GB | int * 1000000000)
+      fpga_toolchain_install_mount_point.size_available | int
+      is gt ( fpga_toolchain_requested_disk_space_GB | int * 1000000000)
     fail_msg: >-
       Disk does not have the minimum space required to install the requested releases.
-      ca. {{ amd_fpga_toolchain_requested_disk_space_GB }} GB needed for the installation
+      ca. {{ fpga_toolchain_requested_disk_space_GB }} GB needed for the installation
       of {{ releases_to_install | length }} new releases, only
-      {{ amd_fpga_toolchain_install_mount_point.size_available | int }} GB available on disk.
+      {{ fpga_toolchain_install_mount_point.size_available | int }} GB available on disk.
       Consider making space on the drive or adding 'vivado_only: True' to some releases.
       An install with 'vivado_only: True' needs approximately 100GB per release,
       a full install with vivado and vitis needs approxmately 300 GB.
