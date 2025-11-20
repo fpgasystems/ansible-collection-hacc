@@ -1,0 +1,80 @@
+---
+
+- name: Find unwanted rocm deb822 sources files
+  ansible.builtin.find:
+    paths: "/etc/apt/sources.list.d/"
+    use_regex: true
+    patterns:
+      - "^rocm(?!{{ versions_to_keep | join('|') }})\\d{3}\\.sources$"
+  vars:
+    versions_to_keep: "{{ rocm_versions | map('regex_replace', '\\.', '') | list }}"
+  register: rocm_unwanted
+
+- name: Build dotted version list from unwanted files
+  ansible.builtin.set_fact:
+    rocm_sources_to_remove: >-
+      {{
+        rocm_unwanted.files
+        | map(attribute='path')
+      }}
+    rocm_versions_to_remove: >-
+      {{
+        rocm_unwanted.files
+        | map(attribute='path')
+        | map('regex_search', 'rocm(\d{3})\.sources', '\1') | first
+        | map('regex_replace', '(\d)(\d)(\d)', '\1.\2.\3')
+        | list
+      }}
+  when: rocm_unwanted.files | length > 0
+
+- name: Delete unwanted rocm versions
+  ansible.builtin.apt:
+    name: "rocm{{ version }}"
+    state: absent
+  loop: "{{ rocm_versions_to_remove }}"
+  loop_control:
+    loop_var: version
+  when: rocm_unwanted.files | length > 0
+
+- name: Delete unwanted rocm deb822 source files
+  ansible.builtin.file:
+    name: "{{ source_file }}"
+    state: absent
+  loop: "{{ rocm_sources_to_remove }}"
+  loop_control:
+    loop_var: source_file
+  notify: Update apt packages
+  when: rocm_unwanted.files | length > 0
+
+
+# amdgpu kernel
+
+- name: Remove amdgpu kernel
+  block:
+    - name: Read amdgpu source file
+      ansible.builtin.slurp:
+        path: /etc/apt/sources.list.d/amdgpu.sources
+      register: rocm_amdgpu_sources_file
+
+    - name: Extract amdgpu repo version from URI
+      ansible.builtin.set_fact:
+        rocm_amdgpu_repo_version: >-
+          {%-
+            set raw = (
+              rocm_amdgpu_sources_file.content
+              | b64decode
+              | regex_search("https://repo\\.radeon\\.com/amdgpu/(\\d+\\.\\d+(?:\\.\\d+)?)/", "\\1")
+            )
+          -%}
+          {{ raw[0] if raw.count('.') == 2 else raw[0] ~ '.0' }}
+
+    - name: Uninstall amdgpu kernel package when a different version is requested
+      ansible.builtin.apt:
+        name: amdgpu
+        state: absent
+      when: rocm_amdgpu_repo_version != rocm_amdgpu_kernel_version
+  rescue:
+    - name: Uninstall amdgpu kernel package when a different version is requested
+      ansible.builtin.apt:
+        name: amdgpu
+        state: absent

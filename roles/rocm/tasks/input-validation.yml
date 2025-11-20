@@ -1,0 +1,30 @@
+---
+
+- name: Check that given amdgpu kernel is valid
+  ansible.builtin.assert:
+    that:
+      - rocm_amdgpu_kernel_version in rocm_supported_amdgpu_kernel_versions
+    fail_msg: "Unsupported amdgpu kernel version: {{ rocm_amdgpu_kernel_version }}"
+
+- name: Check that all given rocm versions are valid
+  ansible.builtin.assert:
+    that:
+      - (rocm_versions | difference(rocm_supported_versions)) | length == 0
+    fail_msg: >-
+      Unsupported ROCm versions found: {{ rocm_versions | difference(rocm_supported_versions) }}
+
+- name: Assert ROCm versions are compatible with AMDGPU kernel
+  ansible.builtin.assert:
+    that:
+      - >-
+        (
+          rocm_versions
+          | fpga_systems.hacc.rocm_incompatible(rocm_amdgpu_kernel_version, rocm_compatibility)
+        ) | length == 0
+    fail_msg: "The following ROCm versions are incompatible with
+    amdgpu kernel {{ rocm_amdgpu_kernel_version }}:
+    {{
+      rocm_versions
+      | fpga_systems.hacc.rocm_incompatible(rocm_amdgpu_kernel_version, rocm_compatibility)
+    }}.
+    See https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/user-kernel-space-compat-matrix.html for more info."
