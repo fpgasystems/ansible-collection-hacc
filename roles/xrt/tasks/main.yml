@@ -33,6 +33,9 @@
     enabled: "{{ true if xrt_use_official_package_repo else false }}"
   notify: Update apt cache
 
+- name: Update apt packages if Xilinx sources changed
+  ansible.builtin.meta: flush_handlers
+
 # USER INPUT VALIDATION
 
 - name: Validate xrt_release format
@@ -86,9 +89,11 @@
   vars:
     xrt_deployment_packages_to_install: "{{ xrt_deployment_packages[device]
     | fpga_systems.hacc.xrt_get_packages(xrt_version) }}"
+  when: xrt_devices | length > 0
 
 # TODO: add the development files to a local repo
 - name: Install Development Target
+  when: xrt_devices | length > 0
   block:
     - name: Try to install Development targets
       ansible.builtin.apt:
