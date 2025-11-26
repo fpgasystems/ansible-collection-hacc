@@ -25,6 +25,7 @@
       loop:
         - 52-xilinx-digilent-usb.rules
         - 52-xilinx-pcusb.rules
+      notify: Reload udev rules
 
     - name: Install ftdi-usb udev rule with secured JTAG access limited to a group
       fpga_systems.hacc.copy_with_lineinfile:
@@ -39,10 +40,11 @@
         mode: '0544'
         regexp: '^ACTION=="add", ATTRS\{idVendor\}=="0403"'
         line: >-
-          ACTION=="add", ATTRS{idVendor}=="0403", ATTRS\{manufacturer\}=="Xilinx",
+          SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{manufacturer}=="Xilinx",
           MODE:="664", GROUP:="{{ fpga_toolchain_jtag_group }}"
       loop:
         - 52-xilinx-ftdi-usb.rules
+      notify: Reload udev rules
 
 - name: Disable JTAG
   ansible.builtin.file:

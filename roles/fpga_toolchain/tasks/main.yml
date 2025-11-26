@@ -6,8 +6,7 @@
 # TODO: check if distribution is available, otherwise early exit
 - name: "Load the amd packages dictionary for the target distribution"
   ansible.builtin.include_vars: >-
-      "fpga-toolchain-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
-
+      fpga-toolchain-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml
 
 # USER INPUT VALIDATION
 
