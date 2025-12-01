@@ -21,6 +21,14 @@
         mode: '0755'
         create: true
 
+    - name: Setup License servers environment variable
+      ansible.builtin.lineinfile:
+        path: "/etc/profile.d/vivado.sh"
+        regexp: '^export XILINXD_LICENSE_FILE='
+        line: "export XILINXD_LICENSE_FILE={{ fpga_toolchain_license_servers | join(':') }}"
+      when: fpga_toolchain_license_servers | length > 0
+
+
 - name: "INFO: `set_bash_environment_variables: true` is ignored"
   ansible.builtin.debug:
     msg: >-
