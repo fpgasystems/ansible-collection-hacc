@@ -100,7 +100,7 @@
 # Install kernel driver
 - name: Install amdgpu kernel driver
   ansible.builtin.apt:
-    name: amdgpu
+    name: amdgpu-dkms
     state: present
     allow_downgrade: true
   notify: Reboot system
