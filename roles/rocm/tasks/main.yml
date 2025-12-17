@@ -30,10 +30,10 @@
     content: |-
       KERNEL=="kfd", GROUP="systems-all", MODE="0660"
       SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="systems-all", MODE="0660"
-    dest: /etc/udev/rules.d/70-amdgpu.rules
+    dest: /etc/udev/rules.d/71-amdgpu.rules
     owner: root
     group: root
-    mode: '0750'
+    mode: '0640'
   notify: Reload udev rules
 
 - name: Remove old installations

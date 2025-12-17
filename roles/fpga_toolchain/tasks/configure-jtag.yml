@@ -21,7 +21,7 @@
         dest: "/etc/udev/rules.d/{{ item }}"
         owner: root
         group: root
-        mode: '0544'
+        mode: '0644'
       loop:
         - 52-xilinx-digilent-usb.rules
         - 52-xilinx-pcusb.rules
@@ -37,7 +37,7 @@
         dest: "/etc/udev/rules.d/{{ item }}"
         owner: root
         group: root
-        mode: '0544'
+        mode: '0644'
         regexp: '^ACTION=="add", ATTRS\{idVendor\}=="0403"'
         line: >-
           SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{manufacturer}=="Xilinx",
