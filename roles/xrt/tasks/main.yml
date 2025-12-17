@@ -72,11 +72,25 @@
       xrt_release is match('^\\d{4}\\.\\d+$') else xrt_release }}"
     xrt_before_version: "{{ xrt_before_version.stdout if xrt_before_version.rc == 0 else 'none' }}"
 
+# NOTE: pin priority of >1000 means:
+#  - Allow downgrade
+#  - Prevent upgrades
+#  - Enforce this version even if others exist
+- name: Pin apt package for XRT to wanted version
+  ansible.builtin.copy:
+    content: |
+      Package: xrt
+      Pin: version {{ xrt_version }}
+      Pin-Priority: 1001
+    dest: /etc/apt/preferences.d/xrt
+    owner: root
+    group: root
+    mode: 0755
+
 - name: Install XRT
   ansible.builtin.apt:
-    name: "xrt={{ xrt_version }}"
+    name: xrt
     state: present
-    allow_downgrade: true
 
 - name: Install Deployment Target
   ansible.builtin.apt:
