@@ -29,8 +29,8 @@
   ansible.builtin.copy:
     content: |-
       KERNEL=="kfd", GROUP="systems-all", MODE="0660"
-      SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="systems-all", MODE="0660"
-    dest: /etc/udev/rules.d/71-amdgpu.rules
+      SUBSYSTEM=="drm", KERNEL=="renderD*", TAG-="uaccess", GROUP="systems-all", MODE="0660"
+    dest: /etc/udev/rules.d/99-amdgpu.rules
     owner: root
     group: root
     mode: '0640'
