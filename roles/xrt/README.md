@@ -6,7 +6,7 @@ This role installs the Xilinx Runtime (XRT) for Alveo FPGA cards.
 Requirements
 ------------
 
-Due to restrictive export protection policies, AMD does not provide the development files in their official debian packages repository (except for the Development files for the VCK5000). Therefore if you want to install development files using this role, you need to download these yourself from the [AMD website](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html) and serve them with your own package repository. See TODO for instructions on how to setup this repository. You also have the option to download the XRT and deployment packages that are in the official Xilinx package repo, but instead serve them with your own package repo. This may be a good safeguard if you don't want to rely on the uptime of the servers of AMD/Xilinx.
+Due to restrictive export protection policies, AMD does not provide the development files in their official debian packages repository (except for the Development files for the VCK5000). Therefore if you want to install development files using this role, you need to download these yourself from the [AMD website](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html) and serve them with your own package repository. See [the `deb_repo` role](../deb_repo) for instructions on how to setup this repository. You also have the option to download the XRT and deployment packages that are in the official Xilinx package repo, but instead serve them with your own package repo. This may be a good safeguard if you don't want to rely on the uptime of the servers of AMD/Xilinx.
 
 > NOTE: keep your pacakge repo private and don't share it publicly as long as you don't have explicit permisions of AMD/Xilinx to do so. The development packages are downloaded under an NDA.
 
@@ -77,6 +77,7 @@ Example Playbook
             xrt_devices:
               - "u55c"
               - "vck5000"
+```
 
 License
 -------
