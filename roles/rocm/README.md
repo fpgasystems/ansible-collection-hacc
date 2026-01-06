@@ -1,38 +1,66 @@
-Role Name
+ROCm
 =========
 
-A brief description of the role goes here.
+This role installs the amdgpu kernel and ROCm userspace libraries/tools for AMD GPUs.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+none
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+```yaml
+rocm_amdgpu_kernel_version: ""
+```
+Set the version of the amdgpu kernel module. An empty string ("") skips installation. See the `rocm_supported_amdgpu_kernel_versions` variable in `vars/main.yml` for the supported amdgpu kernel versions.
+
+```yaml
+rocm_versions: []
+```
+Set the versions of ROCm you want to install in a list of strings. See the `rocm_supported_verions` variable in `vars/main.yml` for the supported ROCm versions. Not all ROCm versions are compatible with your selected amdgpu kernel version, see `rocm_compatibility_matrix` in `vars/main.yml` for the compatibility between ROCm versions and the amdgpu kernel.
+
+The `environment-modules` package is always installed to allow users to switch easily between ROCm versions using for example `module load rocm/6.3.3`. See the docs [https://modules.readthedocs.io/en/latest/](https://modules.readthedocs.io/en/latest/).
+
+```yaml
+rocm_strict_mode: false
+```
+Strict mode enforces strict isolation between the memory of AMD CPUs and AMD GPUs. It also disables IOMMU optimizations, making the IOMMU behavior (like TLB flushing, etc.) more predictable. Strict mode needs to be enabled when using [Coyote](https://github.com/fpgasystems/Coyote) in combination with AMD GPUs.
+
+```yaml
+rocm_device_group: "render"
+```
+The Linux group that is allowed to use the GPU devices. Change it to whatever Linux group you want to give these permissions.
+
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+none
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
+```yaml
     - hosts: servers
+
       roles:
-         - { role: username.rolename, x: 42 }
+        - role: fpga_systems.hacc.rocm
+          vars:
+            rocm_amdgpu_kernel_version: "6.3.3"
+            rocm_versions:
+              - "6.3.3"
+              - "7.1.0"
+            rocm_device_group: "gpu_developers"
+```
 
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+This role was created in 2025 by [Geert Roks](https://github.com/GeertRoks), maintainer for Heterogeneous Accelerated Compute Cluster (HACC) at the ETH Zürich, Systems Group.

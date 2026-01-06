@@ -3,7 +3,7 @@
 - name: Check that given amdgpu kernel is valid
   ansible.builtin.assert:
     that:
-      - rocm_amdgpu_kernel_version in rocm_supported_amdgpu_kernel_versions
+      - rocm_amdgpu_kernel_version in rocm_supported_amdgpu_kernel_versions or not rocm_amdgpu_kernel_version
     fail_msg: "Unsupported amdgpu kernel version: {{ rocm_amdgpu_kernel_version }}"
 
 - name: Check that all given rocm versions are valid
@@ -14,6 +14,7 @@
       Unsupported ROCm versions found: {{ rocm_versions | difference(rocm_supported_versions) }}
 
 - name: Assert ROCm versions are compatible with AMDGPU kernel
+  when: rocm_amdgpu_kernel_version
   ansible.builtin.assert:
     that:
       - >-

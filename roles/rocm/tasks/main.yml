@@ -1,17 +1,30 @@
 ---
 
+###############################
+# REFERENCES:                 #
+###############################
+#  Pre-installation:
+#    - https://rocmdocs.amd.com/projects/install-on-linux/en/latest/install/prerequisites.html
+#
+#  Installation:
+#    - https://rocmdocs.amd.com/projects/install-on-linux/en/latest/install/install-methods/package-manager/package-manager-ubuntu.html
+#    - https://instinct.docs.amd.com/projects/amdgpu-docs/en/latest/install/detailed-install/package-manager/package-manager-ubuntu.html
+#
+#  Post-installation:
+#    - https://rocmdocs.amd.com/projects/install-on-linux/en/latest/install/post-install.html
+###############################
+
+###############################
 # TODO:
 #   - Add Cleanup
-#   - Add logic for PATH with module or manually
-#   - Improve devices object data model
+#   - Cleanup the code
+###############################
 
 # USER INPUT VALIDATION
 - name: User input validation
   ansible.builtin.include_tasks: ./input-validation.yml
 
 # PRE-INSTALLATION
-# https://rocmdocs.amd.com/projects/install-on-linux/en/latest/install/prerequisites.html
-# Prerequisites
 - name: Install prerequisite python modules
   ansible.builtin.apt:
     name:
@@ -20,16 +33,13 @@
 
 - name: Install module command for multi version management
   ansible.builtin.apt:
-    name:
-      - "environment-modules"
-  when: rocm_allow_multiple_versions
+    name: "environment-modules"
 
-# Setup these udev rules instead of adding users to 'render' and 'video' group
 - name: Setup udev rules to allow users of a group to access to the GPU
   ansible.builtin.copy:
     content: |-
-      KERNEL=="kfd", GROUP="systems-all", MODE="0660"
-      SUBSYSTEM=="drm", KERNEL=="renderD*", TAG-="uaccess", GROUP="systems-all", MODE="0660"
+      KERNEL=="kfd", GROUP="{{ rocm_device_group }}", MODE="0660"
+      SUBSYSTEM=="drm", KERNEL=="renderD*", TAG-="uaccess", GROUP="{{ rocm_device_group }}", MODE="0660"
     dest: /etc/udev/rules.d/99-amdgpu.rules
     owner: root
     group: root
@@ -39,9 +49,8 @@
 - name: Remove old installations
   ansible.builtin.include_tasks: ./remove.yml
 
+
 # INSTALLATION
-# https://rocmdocs.amd.com/projects/install-on-linux/en/latest/install/install-methods/package-manager/package-manager-ubuntu.html
-# https://instinct.docs.amd.com/projects/amdgpu-docs/en/latest/install/detailed-install/package-manager/package-manager-ubuntu.html
 
 # NOTE: if the version ends in `.0`, then this needs to be removed for the repository.
 # For example: for version 7.1.0, the repository name is 7.1,
@@ -63,6 +72,7 @@
   notify: Update apt packages
 
 - name: Add AMD gpu kernel repos to apt using gpg key
+  when: rocm_amdgpu_kernel_version
   ansible.builtin.deb822_repository:
     name: amdgpu
     types: [deb]
@@ -101,7 +111,7 @@
 - name: Install amdgpu kernel driver
   ansible.builtin.apt:
     name: amdgpu-dkms
-    state: present
+    state: "{{ 'present' if rocm_amdgpu_kernel_version else 'absent' }}"
     allow_downgrade: true
   notify: Reboot system
 
@@ -111,10 +121,6 @@
 
 
 # Install Rocm
-# sudo apt install rocm
-# rocm-hip-libraries rocm-hip-runtime rocm-language-runtime
-# rocm-ml-libraries rocm-opencl-runtime rocm-developer-tools
-# rocm-hip-runtime-devel rocm-hip-sdk rocm-ml-sdk rocm-opencl-sdk rocm-openmp-sdk
 - name: Install full ROCm suite for all selected versions
   ansible.builtin.apt:
     name: "rocm{{ version }}"
@@ -152,8 +158,8 @@
 #   loop_control:
 #     loop_var: version
 
+
 # POST INSTALLATION
-# https://rocmdocs.amd.com/projects/install-on-linux/en/latest/install/post-install.html
 - name: Configure the system linker to find the ROCm shared objects path
   ansible.builtin.copy:
     content: |-
@@ -165,8 +171,22 @@
     mode: '0750'
   notify: Reload system linker
 
-# TODO: give the option to manage the PATH manually or using module
-# Configure ROCM PATH
-# < use `module` command >
-# copy /opt/rocm-{{ version }}/lib/rocmmod to /usr/share/modules/modulefiles
-#
+- name: Update GRUB boot options to enable strict mode
+  ansible.builtin.copy:
+    content: >-
+      GRUB_CMDLINE_LINUX="amd_iommu=force_isolation
+      iommu=nopt
+      dyndbg='module amdgpu +p; module iommu_v2 +p; module iommu_v1 +p; module iommufd +p'"
+    dest: /etc/default/grub.d/99-rocm-strict-mode.cfg
+    owner: root
+    group: root
+    mode: '0644'
+  when: rocm_strict_mode
+  notify: Update GRUB
+
+- name: Disable strict mode
+  ansible.builtin.file:
+    path: /etc/default/grub.d/99-rocm-strict-mode.cfg
+    state: absent
+  when: not rocm_strict_mode
+  notify: Update GRUB
