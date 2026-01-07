@@ -91,11 +91,6 @@ fpga_toolchain_install_path: /tools/amd
 The location where the AMD toolchain is installed
 
 ```yaml
-fpga_toolchain_set_bash_environment_variables: True
-```
-Boolean that sets whether the installed tools should be loaded into the bash environment variables, so that they are immediately available. When set to False, the user should load the tools by themselves or run the program from the installation location. This option is set to False when there are more than one release is provided to the `fpga_toolchain_releases` list.
-
-```yaml
 fpga_toolchain_uninstall_dangling_releases: False
 ```
 Boolean that defines whether the role should look for other installed tool releases and delete them. The tools are 'dangling' when they are not defined in the `fpga_toolchain_releases` list, but are installed in the `fpga_toolchain_install_path`.
