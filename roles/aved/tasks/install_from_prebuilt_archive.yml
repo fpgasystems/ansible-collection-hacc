@@ -78,6 +78,22 @@
     deb: "{{ aved_found_xbtest_deb.files[0].path }}"
     state: present
 
+- name: Check if ami module is loaded
+  ansible.builtin.command: lsmod
+  register: lsmod_out
+  changed_when: false
+
+- name: Fail if ami module is not loaded
+  ansible.builtin.fail:
+    msg: >-
+      The AMI kernel module is not loaded. It should normally
+      load by itself, so consider rebooting or forcing the
+      load using `modprobe ami`."
+  when: "'ami' not in lsmod_out.stdout"
+
+- name: Check if AVED installed correctly for BDF
+  ansible.builtin.include_tasks: ./check_bdf.yml
+
 # Instal FPT image on Adaptive SoC device
 # - name: Unload ami kernel module
 #   community.general.modprobe:
@@ -128,6 +144,7 @@
     - aved_devices is not mapping
     - aved_devices is iterable
     - (aved_devices | length) > 0
+    - device.aved_needed
   loop: "{{ aved_devices }}"
   loop_control:
     loop_var: device
@@ -167,6 +184,7 @@
     - aved_devices is not mapping
     - aved_devices is iterable
     - (aved_vrt_devices | length) > 0
+    - device.aved_needed
   loop: "{{ aved_vrt_devices }}"
   loop_control:
     loop_var: device

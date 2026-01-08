@@ -1,0 +1,72 @@
+---
+
+- name: Run ami_tool overview
+  ansible.builtin.command: ami_tool overview
+  register: ami_output
+  changed_when: false
+
+- name: Extract AMI version
+  ansible.builtin.set_fact:
+    ami_version: "{{
+      ami_output.stdout
+      | regex_search('Version\\s+\\|\\s+([\\d\\.]+)', '\\1')
+    | first }}"
+
+- name: Parse devices from ami_tool output
+  ansible.builtin.set_fact:
+    parsed_devices: >-
+      {{
+        ami_output.stdout_lines
+        | select('match', '^\\S+\\s*\\|')
+        | map('regex_replace', '^\\s*', '')
+        | map('regex_replace', '\\s*$', '')
+        | map('split', '|')
+        | map('map', 'trim')
+        | list
+        }}
+
+- name: Fail if aved_devices defines bdfs that don't exist
+  fail:
+    msg: "{{ item }} is not a valid aved device"
+  loop: "{{ aved_devices | map(attribute='bdf') | list }}"
+  when: current_device | length == 0
+  vars:
+    current_device: "{{ parsed_devices | selectattr('0', 'equalto', item) | list }}"
+
+- name: Annotate AVED devices with aved_needed
+  loop: "{{ aved_devices | map(attribute='bdf') | list }}"
+  set_fact:
+    aved_devices: >-
+      {{
+        aved_devices
+        | map('combine', {
+          'aved_needed': (
+          (
+          parsed_devices
+          | selectattr('0', 'equalto', item)
+          | list
+          | first
+          ) is not none
+          and
+          (
+          (parsed_devices
+          | selectattr('0', 'equalto', item)
+          | list
+          | first)[3].split()[0] != ami_version
+          or
+          (parsed_devices
+          | selectattr('0', 'equalto', item)
+          | list
+          | first)[4] != 'READY'
+          )
+          )
+          or
+          (
+          parsed_devices
+          | selectattr('0', 'equalto', item)
+          | list
+          | length == 0
+          )
+          })
+          | list
+        }}
