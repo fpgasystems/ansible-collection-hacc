@@ -1,20 +1,18 @@
 ---
 
-# TODO: check if 300GB and 100GB are correct or too conservative
-#       for vivado_only: False and vivado_only: True respectively
 - name: Calculate the disk space that is needed for the install of all releases
-  set_fact:
-    fpga_toolchain_requested_disk_space_GB: >-
+  ansible.builtin.set_fact:
+    fpga_toolchain_requested_disk_space_gb: >-
       {{
         fpga_toolchain_releases_normalized
         | selectattr('release', 'in', releases_to_install)
         | map(attribute='vivado_only')
-        | map('ternary', 100, 300)
+        | map('ternary', 70, 170)
         | sum
       }}
 
 - name: Find the mount point of the installation path
-  set_fact:
+  ansible.builtin.set_fact:
     fpga_toolchain_install_mount_point: >-
       {{
         ansible_mounts
@@ -24,16 +22,16 @@
       }}
 
 - name: Assert that there is enough disk space
-  assert:
+  ansible.builtin.assert:
     that: >-
       fpga_toolchain_install_mount_point.size_available | int
-      is gt ( fpga_toolchain_requested_disk_space_GB | int * 1000000000)
+      is gt ( fpga_toolchain_requested_disk_space_gb | int * 1000000000)
     fail_msg: >-
       {% set disk_avail = fpga_toolchain_install_mount_point.size_available | int * 0.000000001 %}
       Disk does not have the minimum space required to install the requested releases.
-      ca. {{ fpga_toolchain_requested_disk_space_GB }} GB needed for the installation
+      ca. {{ fpga_toolchain_requested_disk_space_gb }} GB needed for the installation
       of {{ releases_to_install | length }} new releases, only
       {{ '%0.1f'| format(disk_avail|float) }} GB available on disk.
       Consider making space on the drive or adding 'vivado_only: True' to some releases.
-      An install with 'vivado_only: True' needs approximately 100GB per release,
-      a full install with vivado and vitis needs approxmately 300 GB.
+      An install with 'vivado_only: True' needs approximately 70GB per release,
+      a full install with vivado and vitis needs approxmately 170 GB.

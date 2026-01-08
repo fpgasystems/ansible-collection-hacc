@@ -27,9 +27,18 @@
     state: absent
   when: (release.split('.')[0] | int) >= 2025
 
-- name: "[{{ release }}] Remove bash source scripts"
+- name: "[{{ release }}] Remove module loading"
   ansible.builtin.lineinfile:
     path: /etc/profile.d/vivado.sh
-    regexp: '^source {{ fpga_toolchain_install_path
-           | fpga_systems.hacc.tools_path(release, "Vivado") }}/settings64.sh'
+    regexp: "module load vivado/{{ release }}"
     state: absent
+
+- name: Remove module file for this release
+  ansible.builtin.file:
+    path: "/usr/share/modules/modulefiles/vivado/{{ release }}"
+    state: absent
+
+- name: "[{{ release }}] Update gathered disk facts"
+  ansible.builtin.setup:
+    gather_subset:
+      - hardware
