@@ -1,24 +1,22 @@
 ---
 
-- name: Create bash profile
-  ansible.builtin.file:
-    path: "/etc/profile.d/vivado.sh"
-    state: present
-    owner: root
-    group: root
-    mode: '0755'
-
 - name: Setup License servers environment variable
   ansible.builtin.lineinfile:
     path: "/etc/profile.d/vivado.sh"
     regexp: '^export XILINXD_LICENSE_FILE='
     line: "export XILINXD_LICENSE_FILE={{ fpga_toolchain_license_servers | join(':') }}"
-  when: fpga_toolchain_license_servers | length > 0
+    create: true
+    owner: root
+    group: root
+    mode: '0755'
 
 - name: Add vivado dir in modulefiles dir
   ansible.builtin.file:
     path: /usr/share/modules/modulefiles/vivado
     state: directory
+    owner: root
+    group: root
+    mode: '0755'
 
 - name: Generate modulefiles from template
   ansible.builtin.template:
@@ -27,9 +25,9 @@
     owner: root
     group: root
     mode: '0755'
-  loop: "{{ installed_releases }}"
-  vars:
-    release: item.release
+  loop: "{{ installed_releases | map(attribute='release') | list }}"
+  loop_control:
+    loop_var: release
 
 - name: Manage vivado module loading based on number of installed releases
   ansible.builtin.lineinfile:
