@@ -92,12 +92,12 @@
 - when:
     - not fpga_toolchain_extraction_stats.stat.exists
   block:
-    - name: "[{{ release }}] Ensure Vitis archive extraction directory exists"
+    - name: "[{{ release }}] Ensure Vivado archive extraction directory exists"
       ansible.builtin.file:
         path: "{{ fpga_toolchain_extraction_path }}/{{ fpga_toolchain_package }}"
         state: directory
 
-    - name: "[{{ release }}] Extract Vitis core archive (100+ GB file, may take a while...)"
+    - name: "[{{ release }}] Extract Vivado archive (100+ GB file, may take a while...)"
       ansible.builtin.unarchive:
         src: "{{ fpga_toolchain_archive_path }}"
         dest: "{{ fpga_toolchain_extraction_path }}"
@@ -112,7 +112,7 @@
     name: "{{ fpga_toolchain_prerequisites }}"
     state: present
 
-- name: "[{{ release }}] Ensure Vitis install directory exists"
+- name: "[{{ release }}] Ensure Vivado install directory exists"
   ansible.builtin.file:
     path: "{{ fpga_toolchain_install_path }}"
     state: directory
@@ -145,7 +145,7 @@
   vars:
     config_path: "/root/.Xilinx/{{ release }}/install_config.txt"
 
-- name: "[{{ release }}] Install tools (usually takes about 2 hours, but can take up to 6 hours...)"
+- name: "[{{ release }}] Install tools (usually takes about 30 min, but can take up to 6 hours...)"
   ansible.builtin.command: >-
     ./xsetup --batch Install
     --config /root/.Xilinx/{{ release }}/install_config.txt

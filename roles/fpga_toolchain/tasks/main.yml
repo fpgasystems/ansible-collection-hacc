@@ -42,18 +42,26 @@
 
 # DETERMINE WHAT NEEDS TO BE DONE
 
-# TODO: create module of this
-- name: Determine what needs to be done
-  ansible.builtin.include_tasks: determine_state.yml
-
+- name: Create action plan
+  fpga_systems.hacc.fpga_toolchain_plan:
+    install_path: "{{ fpga_toolchain_install_path }}"
+    uninstall_dangling: "{{ fpga_toolchain_uninstall_dangling_releases }}"
+    releases: "{{ fpga_toolchain_releases }}"
+  register: plan
 
 # REMOVE
 
 - name: Uninstall Vitis/Vivado releases
   ansible.builtin.include_tasks: ./uninstall.yml
-  loop: "{{ releases_to_uninstall }}"
+  loop: "{{ plan.uninstall }}"
   loop_control:
     loop_var: release
+
+- name: Update gathered disk facts
+  ansible.builtin.setup:
+    gather_subset:
+      - hardware
+  when: plan.uninstall | length > 0
 
 
 # CHECK SPACE
@@ -70,7 +78,7 @@
   loop: >-
     {{
       fpga_toolchain_releases_normalized
-      | selectattr('release', 'in', releases_to_install)
+      | selectattr('release', 'in', plan.install)
     }}
   loop_control:
     loop_var: fpga_toolchain_release
@@ -81,7 +89,7 @@
     installed_releases: >-
       {{
         fpga_toolchain_releases_normalized
-        | selectattr('release', 'in', (releases_to_install+releases_already_correct))
+        | selectattr('release', 'in', (plan.install+plan.correct))
       }}
 
 - name: Configure JTAG udev rules

@@ -8,26 +8,36 @@
 #   (eg. <install_path>/2025.1/Vivado)
 ##
 
-# TODO: use {{ fpga_toolchain_install_path }}/.xinstall/<release>/xsetup -b Uninstall instead
+- name: Remove unwanted releases
+  when: (release.split('.')[0] | int >= 2025)
+  ansible.builtin.command:
+    cmd: "{{ fpga_toolchain_install_path }}/.xinstall/{{ release }}/xsetup -b Uninstall"
+  changed_when: true
 
-- name: "[{{ release }}] Remove program files for releases <= 2024.2"
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop:
-    - "{{ fpga_toolchain_install_path }}/Vivado/{{ release }}"
-    - "{{ fpga_toolchain_install_path }}/Vitis_HLS/{{ release }}"
-    - "{{ fpga_toolchain_install_path }}/Vitis/{{ release }}"
-    - "{{ fpga_toolchain_install_path }}/Model_Composer/{{ release }}"
-  when: (release.split('.')[0] | int) <= 2024
+- name: Remove unwanted releases
+  when: (release.split('.')[0] | int <= 2024)
+  block:
+    - name: Gather installations
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ fpga_toolchain_install_path }}/.xinstall/Vivado_{{ release }}"
+        - "{{ fpga_toolchain_install_path }}/.xinstall/Vitis_{{ release }}"
+      register: xinstall_stats
 
-- name: "[{{ release }}] Remove program files for releases >=2025.1"
-  ansible.builtin.file:
-    path: "{{ fpga_toolchain_install_path }}/{{ release }}"
-    state: absent
-  when: (release.split('.')[0] | int) >= 2025
+    - name: Remove Vivado installation
+      ansible.builtin.command:
+        cmd: "{{ fpga_toolchain_install_path }}/.xinstall/Vivado_{{ release }}/xsetup -b Uninstall"
+      changed_when: true
+      when: xinstall_stats.results[0].stat.exists
 
-- name: "[{{ release }}] Remove module loading"
+    - name: Remove Vitis installation
+      ansible.builtin.command:
+        cmd: "{{ fpga_toolchain_install_path }}/.xinstall/Vitis_{{ release }}/xsetup -b Uninstall"
+      changed_when: true
+      when: xinstall_stats.results[1].stat.exists
+
+- name: Remove module loading
   ansible.builtin.lineinfile:
     path: /etc/profile.d/vivado.sh
     regexp: "module load vivado/{{ release }}"
@@ -37,8 +47,3 @@
   ansible.builtin.file:
     path: "/usr/share/modules/modulefiles/vivado/{{ release }}"
     state: absent
-
-- name: "[{{ release }}] Update gathered disk facts"
-  ansible.builtin.setup:
-    gather_subset:
-      - hardware
