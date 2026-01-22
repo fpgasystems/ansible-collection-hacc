@@ -6,3 +6,4 @@ rocm_versions: []
 rocm_strict_mode: false
 
 rocm_device_group: "render"
+rocm_device_permissions: "0660"

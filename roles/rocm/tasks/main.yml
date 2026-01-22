@@ -39,20 +39,20 @@
   ansible.builtin.copy:
     content: |-
       # Disable logind / uaccess handling for all DRM devices
-      SUBSYSTEM=="drm", TAG-="uaccess", ENV{ACL_MANAGE}="0"
+      SUBSYSTEM=="drm", ATTRS{vendor}=="0x1002", TAG-="uaccess", ENV{ACL_MANAGE}="0"
 
       # Render nodes
-      SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP:="{{ rocm_device_group }}", MODE:="0660"
+      SUBSYSTEM=="drm", KERNEL=="renderD*", ATTRS{vendor}=="0x1002", \
+        GROUP:="{{ rocm_device_group }}", MODE:="{{ rocm_device_permissions }}"
 
       # AMD KFD device (ROCm)
-      KERNEL=="kfd", GROUP:="{{ rocm_device_group }}", MODE:="0660"
+      KERNEL=="kfd", GROUP:="{{ rocm_device_group }}", MODE:="{{ rocm_device_permissions }}"
 
     dest: /etc/udev/rules.d/amdgpu.rules
     owner: root
     group: root
     mode: '0644'
   notify:
-    - Update initramfs
     - Reload udev rules
 
 - name: Remove old installations

@@ -31,7 +31,7 @@ Strict mode enforces strict isolation between the memory of AMD CPUs and AMD GPU
 ```yaml
 rocm_device_group: "render"
 ```
-The Linux group that is allowed to use the GPU devices. Change it to whatever Linux group you want to give these permissions.
+The Linux group that is allowed to use the GPU devices. Change it to whatever Linux group you want to give these permissions. If you want to use a network group, then use the gid of this network group. During boot it is not assured that the name of a network group can be found and then the GPUs will be assigned to the root group instead. You find the gid of the network group using `getent group <name of network group>`.
 
 
 Dependencies
