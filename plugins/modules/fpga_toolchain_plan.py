@@ -2,73 +2,77 @@ from ansible.module_utils.basic import AnsibleModule
 import os
 import re
 
-
-RELEASE_RE = re.compile(r"(\d{4}\.\d)")
-VIVADO_RE = re.compile(r"Vivado")
-VITIS_RE = re.compile(r"Vitis_HLS")
-
-
 def find_installed_releases(base_path):
     vivado = set()
     vitis = set()
     err = set()
 
-    # If the base_path does not exist, then nothing is installed
-    if not os.path.isdir(base_path):
-        return vivado, vitis, err
-
-    # releases of 2025.1 and newer
-    dirs = [
-        name
-        for name in os.listdir(base_path)
-        if os.path.isdir(os.path.join(base_path, name)) and RELEASE_RE.search(name)
-    ]
-    VIVADO_RE = re.compile(r"Vivado")
-    VITIS_RE = re.compile(r"Vitis_HLS")
-    for d in dirs:
-        first_level_dir = os.path.join(base_path, d)
-        r_dirs = [
-            name
-            for name in os.listdir(first_level_dir)
-            if os.path.isdir(os.path.join(first_level_dir, name))
-        ]
-        for di in r_dirs:
-            match_release_vitis = VITIS_RE.search(di)
-            match_release_vivado = VIVADO_RE.search(di)
-            if match_release_vitis:
-                vitis.add(d)
-                continue
-            elif match_release_vivado:
-                vivado.add(d)
-                continue
-            else:
-                continue
-
-    # releases of 2024.2 and older
     xinstall_path = os.path.join(base_path, ".xinstall")
-    dirs_xinstall = [
+    release_dirs = [
         name
         for name in os.listdir(xinstall_path)
         if os.path.isdir(os.path.join(xinstall_path, name))
     ]
-    VIVADO_RE = re.compile(r"Vivado_(\d{4}\.\d)")
-    VITIS_RE = re.compile(r"Vitis_(\d{4}\.\d)")
-    for di in dirs_xinstall:
-        match_vitis = VITIS_RE.search(di)
-        match_vivado = VIVADO_RE.search(di)
-        if not match_vitis and not match_vivado:
+    VIVADO_RE = re.compile(r"Vivado")
+    VITIS_RE = re.compile(r"Vitis")
+    for release_dir in release_dirs:
+        match_release = re.search(r'(\d{4})\.(\d)', release_dir)
+
+        if not match_release:
             continue
-        release = di.split("_")[1]
-        if match_vitis:
-            vitis.add(release)
-        elif match_vivado:
-            vivado.add(release)
+
+        release_year = int(match_release.group(1))
+        release_minor = int(match_release.group(2))
+        release = f"{release_year}.{release_minor}"
+        release_root_path = os.path.join(xinstall_path, release_dir)
+
+        # releases between 2022.1 and 2024.2
+        if release_year >= 2022 and release_year <= 2024:
+            match_vitis = VITIS_RE.search(release_dir)
+            match_vivado = VIVADO_RE.search(release_dir)
+
+            if not match_vitis and not match_vivado:
+                continue
+
+            if match_vitis:
+                vitis.add(release)
+            elif match_vivado:
+                vivado.add(release)
+
+        elif release_year >= 2025:
+            with open(os.path.join(release_root_path, "data/instRecord.dat"), "r") as f:
+                content = f.read()
+
+            latestInstalledProduct_found = re.findall(
+                r"<latestInstalledProduct>(.*?)</latestInstalledProduct>",
+                content,
+                re.DOTALL
+            )
+
+            if not latestInstalledProduct_found:
+                module.fail_json(
+                    msg=f"Could not determine Vitis or Vivado for {release_dir}",
+                    changed=False
+                )
+
+            product = latestInstalledProduct_found[-1]
+
+            if VIVADO_RE.search(product):
+                vivado.add(release)
+            elif VITIS_RE.search(product):
+                vitis.add(release)
+
+        else:
+            module.fail_json(
+                msg=f"Releases from {release_year} are not (yet) supported",
+                changed=False
+            )
 
     # Report the releases that seem to be of both vitis and vivado
     err = vivado.intersection(vitis)
-    for r in err:
-        vitis.remove(r)
-        vivado.remove(r)
+    for release in err:
+        vitis.remove(release)
+        vivado.remove(release)
 
     return vivado, vitis, err
 

@@ -5,7 +5,7 @@
     fpga_toolchain_requested_disk_space_gb: >-
       {{
         fpga_toolchain_releases_normalized
-        | selectattr('release', 'in', releases_to_install)
+        | selectattr('release', 'in', plan.install)
         | map(attribute='vivado_only')
         | map('ternary', 70, 170)
         | sum
@@ -30,7 +30,7 @@
       {% set disk_avail = fpga_toolchain_install_mount_point.size_available | int * 0.000000001 %}
       Disk does not have the minimum space required to install the requested releases.
       ca. {{ fpga_toolchain_requested_disk_space_gb }} GB needed for the installation
-      of {{ releases_to_install | length }} new releases, only
+      of {{ plan.install | length }} new releases, only
       {{ '%0.1f'| format(disk_avail|float) }} GB available on disk.
       Consider making space on the drive or adding 'vivado_only: True' to some releases.
       An install with 'vivado_only: True' needs approximately 70GB per release,
