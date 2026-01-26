@@ -49,6 +49,10 @@
     releases: "{{ fpga_toolchain_releases }}"
   register: plan
 
+- name: Display plan
+  ansible.builtin.debug:
+    msg: "{{ plan }}"
+
 # REMOVE
 
 - name: Uninstall Vitis/Vivado releases
