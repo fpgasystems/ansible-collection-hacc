@@ -2,79 +2,79 @@
 
 ##
 # Parameters:
-#   - `fpga_toolchain_release`:        Object containing install info: release, vivado_only, update_level (required)
+#   - `vivado_release`:        Object containing install info: release, vivado_only, update_level (required)
 
 # FACTS GATHERING
 
-- name: "[{{ fpga_toolchain_release.release }}] Load release options"
+- name: "[{{ vivado_release.release }}] Load release options"
   ansible.builtin.set_fact:
-    release: "{{ fpga_toolchain_release.release }}"
-    vivado_only: "{{ fpga_toolchain_release.vivado_only }}"
-    update_level: "{{ fpga_toolchain_release.update_level }}"
+    release: "{{ vivado_release.release }}"
+    vivado_only: "{{ vivado_release.vivado_only }}"
+    update_level: "{{ vivado_release.update_level }}"
 
 - name: "[{{ release }}] Set AMD Toolchain facts"
   ansible.builtin.set_fact:
-    fpga_toolchain_package: >-
-      {{ fpga_toolchain_packages[release]['archive'][update_level]['package'] }}
-    fpga_toolchain_archive_extention: >-
-      {{ fpga_toolchain_packages[release]['archive'][update_level]['extention'] }}
-    fpga_toolchain_archive_checksum: >-
-      {{ fpga_toolchain_packages[release]['archive'][update_level]['checksum_md5'] }}
-    fpga_toolchain_prerequisites: >-
-      {{ fpga_toolchain_packages[release]['prerequisites'] }}
+    vivado_package: >-
+      {{ vivado_packages[release]['archive'][update_level]['package'] }}
+    vivado_archive_extention: >-
+      {{ vivado_packages[release]['archive'][update_level]['extention'] }}
+    vivado_archive_checksum: >-
+      {{ vivado_packages[release]['archive'][update_level]['checksum_md5'] }}
+    vivado_prerequisites: >-
+      {{ vivado_packages[release]['prerequisites'] }}
 
 - name: "[{{ release }}] Set archive name fact"
   ansible.builtin.set_fact:
-    fpga_toolchain_archive: >-
-      {{ fpga_toolchain_package }}{{ fpga_toolchain_archive_extention }}
+    vivado_archive: >-
+      {{ vivado_package }}{{ vivado_archive_extention }}
 
 - name: "[{{ release }}] Set tools archive extraction path"
   ansible.builtin.set_fact:
-    fpga_toolchain_extraction_path: >-
-      {{ fpga_toolchain_download_path }}/{{ release }}
-    fpga_toolchain_archive_path: >-
-      {{ fpga_toolchain_download_path }}/{{ release }}/{{ fpga_toolchain_archive }}
+    vivado_extraction_path: >-
+      {{ vivado_download_path }}/{{ release }}
+    vivado_archive_path: >-
+      {{ vivado_download_path }}/{{ release }}/{{ vivado_archive }}
 
 
 # CHECK ARCHIVE
 
 - name: "[{{ release }}] Check if the tools archive needs to be extracted"
   ansible.builtin.stat:
-    path: "{{ fpga_toolchain_extraction_path }}/{{ fpga_toolchain_package }}"
-  register: fpga_toolchain_extraction_stats
+    path: "{{ vivado_extraction_path }}/{{ vivado_package }}"
+  register: vivado_extraction_stats
 
 - ansible.builtin.debug:
     msg: >-
       [INFO] Archive precense assertions will be skipped, because the tools have already
       been extracted. Allowing users to remove the archive if desired.
-  when: fpga_toolchain_extraction_stats.stat.exists
+  when: vivado_extraction_stats.stat.exists
 
 - name: "[{{ release }}] Extraction directory does not yet exist"
-  when: not fpga_toolchain_extraction_stats.stat.exists
+  when: not vivado_extraction_stats.stat.exists
   block:
     - name: "[{{ release }}] Check if the tools archive has already been downloaded"
       ansible.builtin.stat:
-        path: "{{ fpga_toolchain_archive_path }}"
+        path: "{{ vivado_archive_path }}"
         checksum_algorithm: md5
         get_checksum: true
-      register: fpga_toolchain_archive_stats
+      register: vivado_archive_stats
 
     - name: "[{{ release }}] Assert that the archive is available"
       ansible.builtin.assert:
         that:
-          - fpga_toolchain_archive_stats.stat.exists
+          - vivado_archive_stats.stat.exists
         fail_msg: >-
-          [ERROR] Can't find the AMD tools archive: {{ fpga_toolchain_archive_path }}.
+          [ERROR] Can't find the AMD tools archive: {{ vivado_archive_path }}.
           Please download it from
           https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html
 
     - name: "[{{ release }}] Assert that the checksum of the archive is correct"
       ansible.builtin.assert:
         that:
-          - fpga_toolchain_archive_stats.stat.checksum == fpga_toolchain_archive_checksum
+          - vivado_archive_stats.stat.checksum == vivado_archive_checksum
         fail_msg: >-
           [ERROR] Checksum of archive file does not correspond to expected md5 checksum:
-          {{ fpga_toolchain_archive_path }}. The file might have been tampered with.
+          {{ vivado_archive_path }}. The file might have been tampered with.
           Please download the correct version from
           https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html
 
@@ -85,22 +85,22 @@
     msg: >-
       [INFO] Extraction will be skipped, because the tools have already been extracted.
       If you want to redo the extraction, make sure that the archive
-      `{{ fpga_toolchain_archive_path }}` exists, and the extracted archive at
-      location `{{ fpga_toolchain_extraction_path }}/{{ fpga_toolchain_package }}` is deleted.
-  when: fpga_toolchain_extraction_stats.stat.exists
+      `{{ vivado_archive_path }}` exists, and the extracted archive at
+      location `{{ vivado_extraction_path }}/{{ vivado_package }}` is deleted.
+  when: vivado_extraction_stats.stat.exists
 
 - when:
-    - not fpga_toolchain_extraction_stats.stat.exists
+    - not vivado_extraction_stats.stat.exists
   block:
     - name: "[{{ release }}] Ensure Vivado archive extraction directory exists"
       ansible.builtin.file:
-        path: "{{ fpga_toolchain_extraction_path }}/{{ fpga_toolchain_package }}"
+        path: "{{ vivado_extraction_path }}/{{ vivado_package }}"
         state: directory
 
     - name: "[{{ release }}] Extract Vivado archive (100+ GB file, may take a while...)"
       ansible.builtin.unarchive:
-        src: "{{ fpga_toolchain_archive_path }}"
-        dest: "{{ fpga_toolchain_extraction_path }}"
+        src: "{{ vivado_archive_path }}"
+        dest: "{{ vivado_extraction_path }}"
         remote_src: true
         extra_opts: "--no-same-owner"
 
@@ -109,12 +109,12 @@
 
 - name: "[{{ release }}] Install prerequisite packages"
   ansible.builtin.package:
-    name: "{{ fpga_toolchain_prerequisites }}"
+    name: "{{ vivado_prerequisites }}"
     state: present
 
 - name: "[{{ release }}] Ensure Vivado install directory exists"
   ansible.builtin.file:
-    path: "{{ fpga_toolchain_install_path }}"
+    path: "{{ vivado_install_path }}"
     state: directory
 
 - name: "[{{ release }}] Ensure config directory exists for the {{ release }} release"
@@ -126,13 +126,13 @@
   ansible.builtin.expect:
     command: >-
       ./xsetup --batch ConfigGen
-      --location {{ fpga_toolchain_install_path }}
+      --location {{ vivado_install_path }}
       --product '{% if vivado_only %}Vivado{% else %}Vitis{% endif %}'
     responses:
       "Please choose: ":
         - "1"
   args:
-    chdir: "{{ fpga_toolchain_extraction_path }}/{{ fpga_toolchain_package }}"
+    chdir: "{{ vivado_extraction_path }}/{{ vivado_package }}"
 
 - name: "[{{ release }}] Copy install_config to release directory"
   ansible.builtin.copy:
@@ -151,7 +151,7 @@
     --config /root/.Xilinx/{{ release }}/install_config.txt
     --agree XilinxEULA,3rdPartyEULA
   args:
-    chdir: "{{ fpga_toolchain_extraction_path }}/{{ fpga_toolchain_package }}"
+    chdir: "{{ vivado_extraction_path }}/{{ vivado_package }}"
   vars:
     # wait up to 6 hours
     ansible_command_timout: 21600

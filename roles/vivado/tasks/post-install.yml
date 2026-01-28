@@ -4,7 +4,7 @@
   ansible.builtin.lineinfile:
     path: "/etc/profile.d/vivado.sh"
     regexp: '^export XILINXD_LICENSE_FILE='
-    line: "export XILINXD_LICENSE_FILE={{ fpga_toolchain_license_servers | join(':') }}"
+    line: "export XILINXD_LICENSE_FILE={{ vivado_license_servers | join(':') }}"
     create: true
     owner: root
     group: root

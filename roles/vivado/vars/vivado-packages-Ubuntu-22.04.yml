@@ -1,6 +1,6 @@
 ---
 
-fpga_toolchain_packages:
+vivado_packages:
   '2025.1':
     archive:
       base:

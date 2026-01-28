@@ -2,21 +2,21 @@
 
 - name: Get newest release
   ansible.builtin.set_fact:
-    fpga_toolchain_newest_release: >-
+    vivado_newest_release: >-
       {{
-        (fpga_toolchain_releases | fpga_systems.hacc.get_newest_release)['release']
+        (vivado_releases | fpga_systems.hacc.get_newest_release)['release']
       }}
 
 - name: Enable JTAG
-  when: fpga_toolchain_enable_jtag
+  when: vivado_enable_jtag
   block:
     - name: Install udev rules for JTAG
       ansible.builtin.copy:
         remote_src: true
         src: >-
           {{
-            fpga_toolchain_install_path
-            | fpga_systems.hacc.tools_path(fpga_toolchain_newest_release, "Vivado")
+            vivado_install_path
+            | fpga_systems.hacc.tools_path(vivado_newest_release, "Vivado")
           }}/data/xicom/cable_drivers/lin64/install_script/install_drivers/{{ item }}
         dest: "/etc/udev/rules.d/{{ item }}"
         owner: root
@@ -31,8 +31,8 @@
       fpga_systems.hacc.copy_with_lineinfile:
         src: >-
           {{
-            fpga_toolchain_install_path
-            | fpga_systems.hacc.tools_path(fpga_toolchain_newest_release, "Vivado")
+            vivado_install_path
+            | fpga_systems.hacc.tools_path(vivado_newest_release, "Vivado")
           }}/data/xicom/cable_drivers/lin64/install_script/install_drivers/{{ item }}
         dest: "/etc/udev/rules.d/{{ item }}"
         owner: root
@@ -41,7 +41,7 @@
         regexp: '^ACTION=="add", ATTRS\{idVendor\}=="0403"'
         line: >-
           SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{manufacturer}=="Xilinx",
-          MODE:="664", GROUP:="{{ fpga_toolchain_jtag_group }}"
+          MODE:="664", GROUP:="{{ vivado_jtag_group }}"
       loop:
         - 52-xilinx-ftdi-usb.rules
       notify: Reload udev rules
@@ -50,7 +50,7 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
-  when: not fpga_toolchain_enable_jtag
+  when: not vivado_enable_jtag
   loop:
     - /etc/udev/rules.d/52-xilinx-ftdi-usb.rules
     - /etc/udev/rules.d/52-xilinx-digilent-usb.rules

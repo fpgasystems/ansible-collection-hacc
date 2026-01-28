@@ -2,74 +2,74 @@
 
 ##
 # Parameters:
-#   - `fpga_toolchain_release`:        Object containing install info: release, vivado_only, update_level (required)
+#   - `vivado_release`:        Object containing install info: release, vivado_only, update_level (required)
 
 # FACTS GATHERING
 #
-- name: "[{{ fpga_toolchain_release.release }}] Load release options"
+- name: "[{{ vivado_release.release }}] Load release options"
   ansible.builtin.set_fact:
-    release: "{{ fpga_toolchain_release.release }}"
-    vivado_only: "{{ fpga_toolchain_release.vivado_only }}"
-    update_level: "{{ fpga_toolchain_release.update_level }}"
+    release: "{{ vivado_release.release }}"
+    vivado_only: "{{ vivado_release.vivado_only }}"
+    update_level: "{{ vivado_release.update_level }}"
 
 - name: "[{{ release }}] Set AMD Toolchain facts"
   ansible.builtin.set_fact:
-    fpga_toolchain_installer_bin: >-
-      {{ fpga_toolchain_packages[release]['installer'][update_level]['bin'] }}
-    fpga_toolchain_installer_checksum: >-
-      {{ fpga_toolchain_packages[release]['installer'][update_level]['checksum_md5'] }}
-    fpga_toolchain_prerequisites: >-
-      {{ fpga_toolchain_packages[release]['prerequisites'] }}
+    vivado_installer_bin: >-
+      {{ vivado_packages[release]['installer'][update_level]['bin'] }}
+    vivado_installer_checksum: >-
+      {{ vivado_packages[release]['installer'][update_level]['checksum_md5'] }}
+    vivado_prerequisites: >-
+      {{ vivado_packages[release]['prerequisites'] }}
 
 - name: "[{{ release }}] Set Tools installer path fact"
   ansible.builtin.set_fact:
-    fpga_toolchain_installer: >-
-      {{ fpga_toolchain_download_path }}/{{ release }}/{{ fpga_toolchain_installer_bin }}
+    vivado_installer: >-
+      {{ vivado_download_path }}/{{ release }}/{{ vivado_installer_bin }}
 
 - name: "[{{ release }}] Assert that email and password are set for AMD installer tool"
   ansible.builtin.assert:
     that:
-      - fpga_toolchain_amd_user_email is not none
-      - fpga_toolchain_amd_user_email is string
-      - fpga_toolchain_amd_user_email is match("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
-      - fpga_toolchain_amd_user_password is not none
-      - fpga_toolchain_amd_user_password is string
+      - vivado_amd_user_email is not none
+      - vivado_amd_user_email is string
+      - vivado_amd_user_email is match("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+      - vivado_amd_user_password is not none
+      - vivado_amd_user_password is string
     fail_msg: >-
-      Either or both `fpga_toolchain_amd_user_email` and `fpga_toolchain_amd_user_password` have
+      Either or both `vivado_amd_user_email` and `vivado_amd_user_password` have
       not been set.
-      'fpga_toolchain_amd_user_email' must be a valid email address (e.g., user@example.com).
+      'vivado_amd_user_email' must be a valid email address (e.g., user@example.com).
 
 
 # PREPARE INSTALLER
 
 - name: "[{{ release }}] Gather stats about Tools installer"
   ansible.builtin.stat:
-    path: "{{ fpga_toolchain_installer }}"
+    path: "{{ vivado_installer }}"
     checksum_algorithm: md5
     get_checksum: true
-  register: fpga_toolchain_installer_stats
+  register: vivado_installer_stats
 
 - name: "[{{ release }}] Assert that the installer is available"
   ansible.builtin.assert:
     that:
-      - fpga_toolchain_installer_stats.stat.exists
+      - vivado_installer_stats.stat.exists
     fail_msg: >-
-      [ERROR] Can't find the AMD tools installer: {{ fpga_toolchain_installer }}.
+      [ERROR] Can't find the AMD tools installer: {{ vivado_installer }}.
       Please download it from
       https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html
 
 - name: "[{{ release }}] Assert that the checksum of the installer is correct"
   ansible.builtin.assert:
     that:
-      - fpga_toolchain_installer_stats.stat.checksum == fpga_toolchain_installer_checksum
+      - vivado_installer_stats.stat.checksum == vivado_installer_checksum
     fail_msg: >-
-      [ERROR] Checksum of the installer is incorrect: {{ fpga_toolchain_installer }}.
+      [ERROR] Checksum of the installer is incorrect: {{ vivado_installer }}.
       The file might have been tampered with. Please download the correct version from
       https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis.html
 
 - name: "[{{ release }}] Set permissions of installer to allow execution"
   ansible.builtin.file:
-    path: "{{ fpga_toolchain_installer }}"
+    path: "{{ vivado_installer }}"
     mode: 755
 
 
@@ -78,39 +78,39 @@
 - name: "[{{ release }}] Check AMD authentication key file stats"
   ansible.builtin.stat:
     path: "/root/.Xilinx/wi_authentication_key"
-  register: fpga_toolchain_installer_auth_file_stats
+  register: vivado_installer_auth_file_stats
 
 - name: "[{{ release }}] Set auth_valid default to whether the auth file exists"
   ansible.builtin.set_fact:
-    fpga_toolchain_installer_auth_valid: >-
+    vivado_installer_auth_valid: >-
       {{
-        fpga_toolchain_installer_auth_file_stats.stat.exists
+        vivado_installer_auth_file_stats.stat.exists
         and
-        fpga_toolchain_installer_auth_file_stats.stat.mode == '0400'
+        vivado_installer_auth_file_stats.stat.mode == '0400'
       }}
 
 - name: "[{{ release }}] Read and validate authentication data"
-  when: fpga_toolchain_installer_auth_valid
+  when: vivado_installer_auth_valid
   block:
     - name: "[{{ release }}] Get authentication file contents"
       ansible.builtin.slurp:
         src: /root/.Xilinx/wi_authentication_key
-      register: fpga_toolchain_installer_auth_data
+      register: vivado_installer_auth_data
 
     - name: "[{{ release }}] Parse authentication file and check whether it is valid"
       ansible.builtin.set_fact:
-        fpga_toolchain_installer_auth_valid: >-
+        vivado_installer_auth_valid: >-
           {{
             (
-              fpga_toolchain_installer_auth_data['content']
+              vivado_installer_auth_data['content']
               | b64decode | from_json
-            )['username'] == fpga_toolchain_amd_user_email
+            )['username'] == vivado_amd_user_email
             and
             (
               (
                 (
                   (
-                    fpga_toolchain_installer_auth_data['content'] | b64decode | from_json
+                    vivado_installer_auth_data['content'] | b64decode | from_json
                   )['expiration']
                   | replace('\\/', '/') | to_datetime('%m/%d/%Y %I:%M %p')
                 ) -
@@ -121,29 +121,29 @@
   rescue:
     - name: "[{{ release }}] Handle AMD authentication file parsing errors"
       ansible.builtin.set_fact:
-        fpga_toolchain_installer_auth_valid: false
+        vivado_installer_auth_valid: false
 
 - name: "[{{ release }}] Generate AMD Auth token"
   ansible.builtin.expect:
-    command: "{{ fpga_toolchain_installer }} --nox11 -- --batch AuthTokenGen"
+    command: "{{ vivado_installer }} --nox11 -- --batch AuthTokenGen"
     responses:
       "E-mail Address:":
-        - "{{ fpga_toolchain_amd_user_email }}"
+        - "{{ vivado_amd_user_email }}"
       "Password:":
-        - "{{ fpga_toolchain_amd_user_password }}"
-  when: not fpga_toolchain_installer_auth_valid
+        - "{{ vivado_amd_user_password }}"
+  when: not vivado_installer_auth_valid
 
 
 # INSTALL
 
 - name: "[{{ release }}] Install prerequisite packages"
   ansible.builtin.package:
-    name: "{{ fpga_toolchain_prerequisites }}"
+    name: "{{ vivado_prerequisites }}"
     state: present
 
 - name: "[{{ release }}] Ensure Vitis install directory exists"
   ansible.builtin.file:
-    path: "{{ fpga_toolchain_install_path }}"
+    path: "{{ vivado_install_path }}"
     state: directory
 
 - name: "[{{ release }}] Ensure config directory exists for the {{ release }} release"
@@ -154,9 +154,9 @@
 - name: "[{{ release }}] Generate AMD tools configuration file"
   ansible.builtin.expect:
     command: >-
-      {{ fpga_toolchain_installer }} --nox11 --
+      {{ vivado_installer }} --nox11 --
       --batch ConfigGen
-      --location {{ fpga_toolchain_install_path }}
+      --location {{ vivado_install_path }}
       --product '{% if vivado_only %}Vivado{% else %}Vitis{% endif %}'
     responses:
       "Please choose: ":
@@ -175,7 +175,7 @@
 
 - name: "[{{ release }}] Install Tools (usually takes about 2 hours, but can take up to 6 hours...)"
   ansible.builtin.command: >-
-    {{ fpga_toolchain_installer }} --nox11 --
+    {{ vivado_installer }} --nox11 --
     --batch Install
     --config /root/.Xilinx/{{ release }}/install_config.txt
     --agree XilinxEULA,3rdPartyEULA"

@@ -10,7 +10,7 @@ ___
 This Ansible collection provides modules, roles, and plugins to manage FPGAs and GPUs for a multi user server setup.
 
 #### Roles:
-  - [`fpga_toolchain`](roles/fpga_toolchain) - Manages installation of Vivado and Vitis
+  - [`vivado`](roles/vivado) - Manages installation of Vivado and Vitis
   - [`aved`](roles/aved) - Alveo Versal Example Design for Versal V80 FPGAs
   - [`xrt`](roles/xrt) - Xilinx RunTime for Alveo FPGAs and Versal VCK5000
   - [`rocm`](roles/rocm) - GPU runtime runtime for AMD GPUs

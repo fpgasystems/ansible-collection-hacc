@@ -1,0 +1,18 @@
+---
+
+vivado_releases: []
+
+vivado_install_path: /tools/amd
+vivado_download_path: /opt/amd/downloads
+
+vivado_set_bash_environment_variables: true
+vivado_uninstall_dangling_releases: false
+vivado_skip_disk_space_check: false
+vivado_enable_desktop_icons: false
+
+vivado_license_servers: []
+vivado_enable_jtag: false
+vivado_jtag_group: "fpga-jtag"
+
+vivado_amd_user_email: null
+vivado_amd_user_password: null

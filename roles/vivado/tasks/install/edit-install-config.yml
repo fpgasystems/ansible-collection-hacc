@@ -3,11 +3,11 @@
 ##
 # Parameters:
 #   - `config_path`:              Full path to the install config to edit (required)
-#   - `fpga_toolchain_enable_desktop_icons`:     Boolean indicating wheter desktop icons need to be installed (required)
+#   - `vivado_enable_desktop_icons`:     Boolean indicating wheter desktop icons need to be installed (required)
 
 - name: "[Edit config] Gather desktop icon config value"
   ansible.builtin.set_fact:
-    enable_desktop_icons: "{% if fpga_toolchain_enable_desktop_icons %}1{% else %}0{% endif %}"
+    enable_desktop_icons: "{% if vivado_enable_desktop_icons %}1{% else %}0{% endif %}"
 
 - name: "[Edit config] Set desktop icon creation"
   ansible.builtin.lineinfile:

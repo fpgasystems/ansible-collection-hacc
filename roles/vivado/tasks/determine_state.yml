@@ -5,7 +5,7 @@
 - name: Gather directories of currently installed releases
   ansible.builtin.find:
     paths:
-      - "{{ fpga_toolchain_install_path }}"
+      - "{{ vivado_install_path }}"
     file_type: directory
     use_regex: true
     recurse: true
@@ -20,8 +20,8 @@
         | map(attribute='path')
         | select(
             "match",
-            fpga_toolchain_install_path + "/Vivado/\d{4}\.\d|"
-            + fpga_toolchain_install_path + "/\d{4}\.\d/Vivado"
+            vivado_install_path + "/Vivado/\d{4}\.\d|"
+            + vivado_install_path + "/\d{4}\.\d/Vivado"
           )
         | map('regex_search', '(\d{4}\.\d)')
         | list
@@ -33,8 +33,8 @@
         | map(attribute='path')
         | select(
             "match",
-            fpga_toolchain_install_path + "/Vitis/\d{4}\.\d|"
-            + fpga_toolchain_install_path + "/\d{4}\.\d/Vitis"
+            vivado_install_path + "/Vitis/\d{4}\.\d|"
+            + vivado_install_path + "/\d{4}\.\d/Vitis"
           )
         | map('regex_search', '(\d{4}\.\d)')
         | list
@@ -45,7 +45,7 @@
   ansible.builtin.set_fact:
     releases_to_install: >-
       {{
-        fpga_toolchain_releases_normalized
+        vivado_releases_normalized
         | selectattr('state', 'eq', 'present')
         | rejectattr('release', 'in', releases_with_vivado_dir_present)
         | map(attribute='release')
@@ -53,14 +53,14 @@
       }}
     releases_to_uninstall: >-
       {{
-        fpga_toolchain_releases_normalized
+        vivado_releases_normalized
         | selectattr('state', 'eq', 'absent')
         | map(attribute='release')
         | list
       }}
     releases_already_correct: >-
       {{
-        fpga_toolchain_releases_normalized
+        vivado_releases_normalized
         | selectattr('state', 'eq', 'present')
         | selectattr('release', 'in', releases_with_vivado_dir_present)
         | selectattr('vivado_only', 'eq', True)
@@ -68,7 +68,7 @@
         | map(attribute='release')
         | list
         + (
-          fpga_toolchain_releases_normalized
+          vivado_releases_normalized
           | selectattr('state', 'eq', 'present')
           | selectattr('release', 'in', releases_with_vivado_dir_present)
           | selectattr('vivado_only', 'eq', False)
@@ -79,7 +79,7 @@
       }}
     releases_to_reinstall: >-
       {{
-        fpga_toolchain_releases_normalized
+        vivado_releases_normalized
         | selectattr('state', 'eq', 'present')
         | selectattr('release', 'in', releases_with_vivado_dir_present)
         | selectattr('vivado_only', 'eq', False)
@@ -87,7 +87,7 @@
         | map(attribute='release')
         | list
         + (
-          fpga_toolchain_releases_normalized
+          vivado_releases_normalized
           | selectattr('state', 'eq', 'present')
           | selectattr('release', 'in', releases_with_vivado_dir_present)
           | selectattr('vivado_only', 'eq', True)
@@ -104,21 +104,21 @@
 
 
 - name: Mark dangling Vitis/Vivado releases for removal
-  when: fpga_toolchain_uninstall_dangling_releases
+  when: vivado_uninstall_dangling_releases
   block:
     - name: Gather directories of dangling releases
       ansible.builtin.find:
         paths:
-          - "{{ fpga_toolchain_install_path }}"
-          - "{{ fpga_toolchain_install_path }}/Vivado"
-          - "{{ fpga_toolchain_install_path }}/Vitis"
-          - "{{ fpga_toolchain_install_path }}/Vitis_HLS"
-          - "{{ fpga_toolchain_install_path }}/Model_Composer"
+          - "{{ vivado_install_path }}"
+          - "{{ vivado_install_path }}/Vivado"
+          - "{{ vivado_install_path }}/Vitis"
+          - "{{ vivado_install_path }}/Vitis_HLS"
+          - "{{ vivado_install_path }}/Model_Composer"
         file_type: directory
         patterns: '^[0-9]{4}\.[0-9]$'
         use_regex: true
-        excludes: "{{ fpga_toolchain_releases_normalized | map(attribute='release') | list }}"
-      register: fpga_toolchain_dangling_releases
+        excludes: "{{ vivado_releases_normalized | map(attribute='release') | list }}"
+      register: vivado_dangling_releases
 
     - name: Add dangling releases to releases to uninstall
       ansible.builtin.set_fact:
@@ -126,7 +126,7 @@
           {{
             releases_to_uninstall +
             (
-              fpga_toolchain_dangling_releases.files
+              vivado_dangling_releases.files
               | map(attribute='path')
               | map('basename')
               | unique

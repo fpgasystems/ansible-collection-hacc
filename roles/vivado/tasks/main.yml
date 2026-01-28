@@ -6,47 +6,47 @@
 # TODO: check if distribution is available, otherwise early exit
 - name: "Load the amd packages dictionary for the target distribution"
   ansible.builtin.include_vars: >-
-      fpga-toolchain-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml
+      vivado-packages-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml
 
 # USER INPUT VALIDATION
 
 # TODO: compact into separate task file
 # Normalizing refers to filling in all attributes with defaults
 #  for the ones that were not set by the user
-- name: Normalize fpga_toolchain_releases variable
+- name: Normalize vivado_releases variable
   ansible.builtin.set_fact:
-    fpga_toolchain_releases_normalized: >-
-      {{ fpga_toolchain_releases | map('fpga_systems.hacc.normalize_releases_list') | list }}
+    vivado_releases_normalized: >-
+      {{ vivado_releases | map('fpga_systems.hacc.normalize_releases_list') | list }}
 
 - name: Assert that the normalized releases list is as long as the user entered list
   ansible.builtin.assert:
-    that: fpga_toolchain_releases | length == fpga_toolchain_releases_normalized | length
+    that: vivado_releases | length == vivado_releases_normalized | length
 
-- name: Assert that there are no duplicate releases in the fpga_toolchain_releases variable
+- name: Assert that there are no duplicate releases in the vivado_releases variable
   ansible.builtin.assert:
     that: >-
       (
-        fpga_toolchain_releases_normalized
+        vivado_releases_normalized
         | map(attribute='release')
         | list
         | unique
         | length
       ) == (
-        fpga_toolchain_releases_normalized
+        vivado_releases_normalized
         | length
       )
     fail_msg: >-
-      Multiple definitions of the same release detected in the fpga_toolchain_releases variable!
+      Multiple definitions of the same release detected in the vivado_releases variable!
        Please define each release only once.
 
 
 # DETERMINE WHAT NEEDS TO BE DONE
 
 - name: Create action plan
-  fpga_systems.hacc.fpga_toolchain_plan:
-    install_path: "{{ fpga_toolchain_install_path }}"
-    uninstall_dangling: "{{ fpga_toolchain_uninstall_dangling_releases }}"
-    releases: "{{ fpga_toolchain_releases }}"
+  fpga_systems.hacc.vivado_plan:
+    install_path: "{{ vivado_install_path }}"
+    uninstall_dangling: "{{ vivado_uninstall_dangling_releases }}"
+    releases: "{{ vivado_releases }}"
   register: plan
 
 - name: Display plan
@@ -72,27 +72,27 @@
 
 - name: Check disk space
   ansible.builtin.include_tasks: check_disk_space.yml
-  when: not fpga_toolchain_skip_disk_space_check
+  when: not vivado_skip_disk_space_check
 
 
 # INSTALL
 
 - name: Install AMD Toolchain
-  ansible.builtin.include_tasks: "./install/using-{{ fpga_toolchain_release.install_method }}.yml"
+  ansible.builtin.include_tasks: "./install/using-{{ vivado_release.install_method }}.yml"
   loop: >-
     {{
-      fpga_toolchain_releases_normalized
+      vivado_releases_normalized
       | selectattr('release', 'in', plan.install)
     }}
   loop_control:
-    loop_var: fpga_toolchain_release
+    loop_var: vivado_release
 
 - name: Post installation tasks (set environment variables etc.)
   ansible.builtin.include_tasks: ./post-install.yml
   vars:
     installed_releases: >-
       {{
-        fpga_toolchain_releases_normalized
+        vivado_releases_normalized
         | selectattr('release', 'in', (plan.install+plan.correct))
       }}
 

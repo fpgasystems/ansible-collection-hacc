@@ -2,9 +2,9 @@
 
 - name: Calculate the disk space that is needed for the install of all releases
   ansible.builtin.set_fact:
-    fpga_toolchain_requested_disk_space_gb: >-
+    vivado_requested_disk_space_gb: >-
       {{
-        fpga_toolchain_releases_normalized
+        vivado_releases_normalized
         | selectattr('release', 'in', plan.install)
         | map(attribute='vivado_only')
         | map('ternary', 70, 170)
@@ -13,10 +13,10 @@
 
 - name: Find the mount point of the installation path
   ansible.builtin.set_fact:
-    fpga_toolchain_install_mount_point: >-
+    vivado_install_mount_point: >-
       {{
         ansible_mounts
-        | selectattr('mount', 'in', fpga_toolchain_install_path)
+        | selectattr('mount', 'in', vivado_install_path)
         | sort(attribute='mount', reverse=true)
         | first
       }}
@@ -24,12 +24,12 @@
 - name: Assert that there is enough disk space
   ansible.builtin.assert:
     that: >-
-      fpga_toolchain_install_mount_point.size_available | int
-      is gt ( fpga_toolchain_requested_disk_space_gb | int * 1000000000)
+      vivado_install_mount_point.size_available | int
+      is gt ( vivado_requested_disk_space_gb | int * 1000000000)
     fail_msg: >-
-      {% set disk_avail = fpga_toolchain_install_mount_point.size_available | int * 0.000000001 %}
+      {% set disk_avail = vivado_install_mount_point.size_available | int * 0.000000001 %}
       Disk does not have the minimum space required to install the requested releases.
-      ca. {{ fpga_toolchain_requested_disk_space_gb }} GB needed for the installation
+      ca. {{ vivado_requested_disk_space_gb }} GB needed for the installation
       of {{ plan.install | length }} new releases, only
       {{ '%0.1f'| format(disk_avail|float) }} GB available on disk.
       Consider making space on the drive or adding 'vivado_only: True' to some releases.

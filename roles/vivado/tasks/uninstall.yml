@@ -11,7 +11,7 @@
 - name: Remove unwanted releases
   when: (release.split('.')[0] | int >= 2025)
   ansible.builtin.command:
-    cmd: "{{ fpga_toolchain_install_path }}/.xinstall/{{ release }}/xsetup -b Uninstall"
+    cmd: "{{ vivado_install_path }}/.xinstall/{{ release }}/xsetup -b Uninstall"
   changed_when: true
 
 - name: Remove unwanted releases
@@ -21,19 +21,19 @@
       ansible.builtin.stat:
         path: "{{ item }}"
       loop:
-        - "{{ fpga_toolchain_install_path }}/.xinstall/Vivado_{{ release }}"
-        - "{{ fpga_toolchain_install_path }}/.xinstall/Vitis_{{ release }}"
+        - "{{ vivado_install_path }}/.xinstall/Vivado_{{ release }}"
+        - "{{ vivado_install_path }}/.xinstall/Vitis_{{ release }}"
       register: xinstall_stats
 
     - name: Remove Vivado installation
       ansible.builtin.command:
-        cmd: "{{ fpga_toolchain_install_path }}/.xinstall/Vivado_{{ release }}/xsetup -b Uninstall"
+        cmd: "{{ vivado_install_path }}/.xinstall/Vivado_{{ release }}/xsetup -b Uninstall"
       changed_when: true
       when: xinstall_stats.results[0].stat.exists
 
     - name: Remove Vitis installation
       ansible.builtin.command:
-        cmd: "{{ fpga_toolchain_install_path }}/.xinstall/Vitis_{{ release }}/xsetup -b Uninstall"
+        cmd: "{{ vivado_install_path }}/.xinstall/Vitis_{{ release }}/xsetup -b Uninstall"
       changed_when: true
       when: xinstall_stats.results[1].stat.exists
 

@@ -13,7 +13,7 @@ module-whatis "Vivado {{ release }} FPGA design suite"
 conflict vivado
 
 # Vivado installation root
-set vivado_root {{ fpga_toolchain_install_path | fpga_systems.hacc.tools_path(release, "Vivado") }}
+set vivado_root {{ vivado_install_path | fpga_systems.hacc.tools_path(release, "Vivado") }}
 
 # Source Xilinx setup script
 source-sh bash $vivado_root/settings64.sh
