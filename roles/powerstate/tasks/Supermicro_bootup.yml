@@ -3,8 +3,8 @@
 - name: Power on Supermicro system
   delegate_to: localhost
   community.general.redfish_command:
-    baseuri: "{{ coldboot_bmc_url }}"
-    username: "{{ coldboot_bmc_username }}"
-    password: "{{ coldboot_bmc_password }}"
+    baseuri: "{{ powerstate_bmc_url }}"
+    username: "{{ powerstate_bmc_username }}"
+    password: "{{ powerstate_bmc_password }}"
     category: Systems
     command: PowerOn

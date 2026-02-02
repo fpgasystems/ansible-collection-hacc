@@ -1,0 +1,7 @@
+---
+
+powerstate_command: "TurnOn"
+powerstate_bmc_vendor: ""
+powerstate_bmc_url: ""
+powerstate_bmc_username: ""
+powerstate_bmc_password: ""

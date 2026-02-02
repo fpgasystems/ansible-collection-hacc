@@ -1,0 +1,51 @@
+---
+
+- name: Check user input
+  ansible.builtin.assert:
+    that:
+      - powerstate_command in ["TurnOn","Shutdown", "WarmBoot", "ColdBoot"]
+      - powerstate_bmc_vendor | length > 0
+      - powerstate_bmc_url | length > 0
+      - powerstate_bmc_username | length > 0
+      - powerstate_bmc_password | length > 0
+
+
+- name: Warm boot host
+  when: powerstate_command in ["WarmBoot"]
+  ansible.builtin.reboot:
+
+
+- name: Shutdown host
+  when: powerstate_command in ["Shutdown", "ColdBoot"]
+  block:
+    - name: Shutdown via OS (systemd)
+      community.general.shutdown:
+        msg: "Shutdown initiated by the powerstate role from Ansible"
+        delay: 5
+      become: true
+
+    - name: Wait for host to shutdown
+      delegate_to: localhost
+      ansible.builtin.wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 30
+        timeout: 180
+        state: stopped
+
+  rescue:
+    - name: Shutdown using RedFish API (IPMI/BMC/iDRAC)
+      ansible.builtin.include_tasks:
+        file: "{{ powerstate_bmc_vendor | capitalize }}_shutdown.yml"
+
+
+- name: Turn on host
+  when: powerstate_command in ["TurnOn", "ColdBoot"]
+  block:
+    - name: Bootup host
+      ansible.builtin.include_tasks:
+        file: "{{ powerstate_bmc_vendor | capitalize }}_bootup.yml"
+
+    - name: Ensure host is back online
+      ansible.builtin.import_tasks:
+        file: "check_if_online.yml"

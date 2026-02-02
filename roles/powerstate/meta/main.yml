@@ -3,10 +3,9 @@
 galaxy_info:
   author: Geert Roks
   description: >-
-    Coldboot server through vendor specific BMCs using
-    the Redfish API. A cold boot removes the power fully
-    before turning the server back on, which resets many
-    FPGAs to their default fabric/shell.
+    Control server power state using vendor specific BMCs through
+    the Redfish API. Allows for turning on and off the server, or
+    do a warm or cold reboot.
   company: ETH Zürich - Systems Group
 
   license: MIT
