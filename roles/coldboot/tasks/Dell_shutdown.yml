@@ -1,0 +1,46 @@
+---
+
+- name: Try a Gracefull shutdown, fall back to ForceOff if needed
+  block:
+    - name: Gracefully shutdown Dell system
+      delegate_to: localhost
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ coldboot_bmc_url }}"
+        username: "{{ coldboot_bmc_username }}"
+        password: "{{ coldboot_bmc_password }}"
+        reset_type: "GracefulShutdown"
+        validate_certs: false
+
+    - name: Wait for host to shutdown
+      delegate_to: localhost
+      ansible.builtin.wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 30
+        sleep: 5
+        timeout: 120
+        state: stopped
+
+  rescue:
+    - name: INFO graceful shutdown failed, falling back to ForceOff
+      ansible.builtin.debug:
+        msg: "Graceful shutdown failed or timed out; performing ForceOff"
+
+    - name: Force shutdown Dell system
+      delegate_to: localhost
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ coldboot_bmc_url }}"
+        username: "{{ coldboot_bmc_username }}"
+        password: "{{ coldboot_bmc_password }}"
+        reset_type: "ForceOff"
+        validate_certs: false
+
+    - name: Wait for host to shutdown
+      delegate_to: localhost
+      ansible.builtin.wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 30
+        sleep: 5
+        timeout: 120
+        state: stopped

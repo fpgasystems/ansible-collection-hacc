@@ -1,0 +1,49 @@
+---
+
+- name: Try a Gracefull shutdown, fall back to ForceOff if needed
+  block:
+    - name: Gracefully shutdown Supermicro system
+      delegate_to: localhost
+      community.general.redfish_command:
+        baseuri: "{{ coldboot_bmc_url }}"
+        username: "{{ coldboot_bmc_username }}"
+        password: "{{ coldboot_bmc_password }}"
+        category: Systems
+        command: PowerGracefulShutdown
+
+    # Wait 2 minutes, because when this system shuts down,
+    # it ramps up the fans to cooldown for a minute.
+    # After this is over, we can restart the server
+    - name: Wait 2 minutes for host to shutdown
+      delegate_to: localhost
+      ansible.builtin.wait_for:
+        host: "{{ coldboot_bmc_url }}"
+        port: 22
+        delay: 120
+        sleep: 5
+        timeout: 180
+        state: stopped
+
+  rescue:
+    - name: INFO graceful shutdown failed, falling back to ForceOff
+      ansible.builtin.debug:
+        msg: "Graceful shutdown failed or timed out; performing ForceOff"
+
+    - name: Force shutdown Supermicro system
+      delegate_to: localhost
+      community.general.redfish_command:
+        baseuri: "{{ coldboot_bmc_url }}"
+        username: "{{ coldboot_bmc_username }}"
+        password: "{{ coldboot_bmc_password }}"
+        category: Systems
+        command: PowerForceOff
+
+    - name: Wait for host to shutdown
+      delegate_to: localhost
+      ansible.builtin.wait_for:
+        host: "{{ coldboot_bmc_url }}"
+        port: 22
+        delay: 120
+        sleep: 5
+        timeout: 180
+        state: stopped

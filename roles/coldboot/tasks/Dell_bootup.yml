@@ -1,0 +1,10 @@
+---
+
+- name: Power on Dell system
+  delegate_to: localhost
+  dellemc.openmanage.redfish_powerstate:
+    baseuri: "{{ coldboot_bmc_url }}"
+    username: "{{ coldboot_bmc_username }}"
+    password: "{{ coldboot_bmc_password }}"
+    reset_type: "On"
+    validate_certs: false
