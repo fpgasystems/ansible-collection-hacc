@@ -1,13 +1,39 @@
 ---
 
+# TODO: Make vendor agnostic
+#   - read system id from the credentials check and use that instead of powerstate_bmc_vendor
+#   - Use ansible.builtin.uri for sending commands instead of the dell and supermicro redfish modules
+
 - name: Check user input
   ansible.builtin.assert:
     that:
-      - powerstate_command in ["TurnOn","Shutdown", "WarmBoot", "ColdBoot"]
+      - powerstate_command in ["TurnOn", "Shutdown", "WarmBoot", "ColdBoot"]
       - powerstate_bmc_vendor | length > 0
       - powerstate_bmc_url | length > 0
       - powerstate_bmc_username | length > 0
       - powerstate_bmc_password | length > 0
+
+- name: Set redfish system id based on vendor
+  ansible.builtin.set_fact:
+    powerstate_redfish_systemid: "{{
+      'System.Embedded.1' if powerstate_bmc_vendor | capitalize == 'Dell'
+      else '1'
+    }}"
+
+- name: Check Redfish BMC credentials
+  when: powerstate_command in ["TurnOn", "Shutdown", "ColdBoot"]
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: "https://{{ powerstate_bmc_url }}/redfish/v1"
+    method: GET
+    user: "{{ powerstate_bmc_username }}"
+    password: "{{ powerstate_bmc_password }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+  register: redfish_auth
+  failed_when: redfish_auth.status != 200
+  changed_when: false
 
 
 - name: Warm boot host
@@ -24,19 +50,41 @@
         delay: 5
       become: true
 
-    - name: Wait for host to shutdown
+    - name: Wait until host is off
       delegate_to: localhost
-      ansible.builtin.wait_for:
-        host: "{{ inventory_hostname }}"
-        port: 22
-        delay: 30
-        timeout: 180
-        state: stopped
+      ansible.builtin.uri:
+        url: "https://{{ powerstate_bmc_url }}/redfish/v1/Systems/{{ powerstate_redfish_systemid }}"
+        method: GET
+        user: "{{ powerstate_bmc_username }}"
+        password: "{{ powerstate_bmc_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+      register: redfish_system
+      until: redfish_system.json.PowerState in ["Off", "PoweringOff"]
+      retries: 30
+      delay: 10
 
   rescue:
     - name: Shutdown using RedFish API (IPMI/BMC/iDRAC)
       ansible.builtin.include_tasks:
         file: "{{ powerstate_bmc_vendor | capitalize }}_shutdown.yml"
+
+  always:
+    - name: Ensure host is powered off
+      delegate_to: localhost
+      ansible.builtin.uri:
+        url: "https://{{ powerstate_bmc_url }}/redfish/v1/Systems/{{ powerstate_redfish_systemid }}"
+        method: GET
+        user: "{{ powerstate_bmc_username }}"
+        password: "{{ powerstate_bmc_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+      register: redfish_system
+      until: redfish_system.json.PowerState == "Off"
+      retries: 30
+      delay: 10
 
 
 - name: Turn on host
@@ -45,6 +93,22 @@
     - name: Bootup host
       ansible.builtin.include_tasks:
         file: "{{ powerstate_bmc_vendor | capitalize }}_bootup.yml"
+
+  always:
+    - name: Ensure host is powered on
+      delegate_to: localhost
+      ansible.builtin.uri:
+        url: "https://{{ powerstate_bmc_url }}/redfish/v1/Systems/{{ powerstate_redfish_systemid }}"
+        method: GET
+        user: "{{ powerstate_bmc_username }}"
+        password: "{{ powerstate_bmc_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+      register: redfish_system
+      until: redfish_system.json.PowerState == "On"
+      retries: 30
+      delay: 10
 
     - name: Ensure host is back online
       ansible.builtin.import_tasks:
