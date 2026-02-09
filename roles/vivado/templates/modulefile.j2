@@ -17,3 +17,10 @@ set vivado_root {{ vivado_install_path | fpga_systems.hacc.tools_path(release, "
 
 # Source Xilinx setup script
 source-sh bash $vivado_root/settings64.sh
+
+{% if release.split('.')[0] | int <= 2023 %}
+# Disable Vitis supplied cmake if a system cmake is already present
+if { [file executable /usr/bin/cmake] } {
+    remove-path PATH {{ vivado_install_path }}/Vitis/{{ release }}/tps/lnx64/cmake-3.3.2/bin
+}
+{% endif %}
