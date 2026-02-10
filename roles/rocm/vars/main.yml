@@ -1,6 +1,7 @@
 ---
 
 rocm_supported_versions:
+  - '7.2.0'
   - '7.1.1'
   - '7.1.0'
   - '7.0.2'
@@ -62,6 +63,8 @@ rocm_supported_versions:
   - '5.1.0'
 
 rocm_supported_amdgpu_kernel_versions:
+  - '30.30.0'
+  - '30.20.1'
   - '30.20.0'
   - '30.10.3'
   - '30.10.2'
@@ -115,17 +118,25 @@ rocm_supported_amdgpu_kernel_versions:
 # Compatibility matrix between AMD GPU driver (key) and Supported ROCm versions (value)
 # https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/user-kernel-space-compat-matrix.html
 rocm_compatibility:
+  '30.30':
+    - '6.3'
+    - '6.4'
+    - '7.0'
+    - '7.1'
+    - '7.2'
   '30.20':
     - '6.3'
     - '6.4'
     - '7.0'
     - '7.1'
+    - '7.2'
   '30.10':
     - '6.2'
     - '6.3'
     - '6.4'
     - '7.0'
     - '7.1'
+    - '7.2'
   '6.4':
     - '6.1'
     - '6.2'
@@ -133,6 +144,7 @@ rocm_compatibility:
     - '6.4'
     - '7.0'
     - '7.1'
+    - '7.2'
   '6.3':
     - '6.1'
     - '6.2'
