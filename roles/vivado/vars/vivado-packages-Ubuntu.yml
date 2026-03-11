@@ -1,6 +1,40 @@
 ---
 
 vivado_packages:
+  '2025.2':
+    archive:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: FPGAs_AdaptiveSoCs_Unified_SDI_2025.2_1114_2157
+        extention: .tar
+        checksum_md5: 5e793c6b88de5123a09f024253fc2527
+    installer:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        bin: FPGAs_AdaptiveSoCs_Unified_SDI_2025.2_1114_2157_Lin64.bin
+        checksum_md5:  abe838aa2e2d3d9b10fea94165e9a303
+    prerequisites:
+      - libc6-dev-i386
+      - net-tools
+      - graphviz
+      - make
+      - unzip
+      - zip
+      - g++
+      - libtinfo5
+      - xvfb
+      - git
+      - libncurses5-dev
+      - libc6-dev-i386
+      - libnss3-dev
+      - libgdk-pixbuf2.0-dev
+      - libgtk-3-dev
+      - libxss-dev
+      - libasound2
+      - openssl
+      - fdisk
+      - libsecret-1-dev
+
   '2025.1':
     archive:
       base:
