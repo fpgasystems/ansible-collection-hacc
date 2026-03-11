@@ -39,9 +39,9 @@
         group: root
         mode: '0644'
         regexp: '^ACTION=="add", ATTRS\{idVendor\}=="0403"'
-        line: >-
-          SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{manufacturer}=="Xilinx",
-          MODE:="664", GROUP:="{{ vivado_jtag_group }}"
+        line: |-
+          SUBSYSTEM=="usb", ATTRS{idVendor}=="0403", MODE="0664", GROUP:="{{ vivado_jtag_group }}"
+          SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", MODE="0664", GROUP:="{{ vivado_jtag_group }}"
       loop:
         - 52-xilinx-ftdi-usb.rules
       notify: Reload udev rules
