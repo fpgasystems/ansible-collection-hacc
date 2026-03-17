@@ -53,6 +53,35 @@
       ami_*.deb pacakges found.
   when: aved_found_ami_deb.matched != 1
 
+- name: Get installed AMI version
+  ansible.builtin.command: dpkg-query -W -f='${Version}' ami
+  register: ami_installed
+  failed_when: false
+  changed_when: false
+
+- name: Extract AMI version from deb filename
+  ansible.builtin.set_fact:
+    ami_target_version: >-
+      {{ (aved_found_ami_deb.files[0].path | basename)
+         | regex_search('([0-9][^_]+)') }}
+
+- name: Check if installed version is older
+  ansible.builtin.command: >
+    dpkg --compare-versions {{ ami_installed.stdout }} lt {{ ami_target_version }}
+  register: ami_version_check
+  failed_when: false
+  changed_when: false
+  when: ami_installed.rc == 0
+
+- name: Purge old AMI if needed
+  ansible.builtin.apt:
+    name: ami
+    state: absent
+    purge: true
+  when:
+    - ami_installed.rc == 0
+    - ami_version_check.rc == 0
+
 - name: Install AMI
   ansible.builtin.apt:
     deb: "{{ aved_found_ami_deb.files[0].path }}"
