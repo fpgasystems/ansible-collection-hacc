@@ -14,7 +14,7 @@
       Unsupported ROCm versions found: {{ rocm_versions | difference(rocm_supported_versions) }}
 
 - name: Assert ROCm versions are compatible with AMDGPU kernel
-  when: rocm_amdgpu_kernel_version
+  when: rocm_amdgpu_kernel_version is defined
   ansible.builtin.assert:
     that:
       - >-
