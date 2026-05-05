@@ -81,7 +81,7 @@
   notify: Update apt packages
 
 - name: Add AMD gpu kernel repos to apt using gpg key
-  when: rocm_amdgpu_kernel_version
+  when: rocm_amdgpu_kernel_version is defined
   ansible.builtin.deb822_repository:
     name: amdgpu
     types: [deb]
