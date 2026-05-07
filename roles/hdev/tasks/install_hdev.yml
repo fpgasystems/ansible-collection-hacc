@@ -75,22 +75,6 @@
     group: root
     mode: '755'
 
-- name: Export CLI_PATH to environment variables
-  ansible.builtin.lineinfile:
-    path: "/etc/profile.d/hdev.sh"
-    regexp: '^export CLI_PATH='
-    line: "export CLI_PATH=/opt/hdev/cli"
-    create: true
-    owner: root
-    group: root
-    mode: '0755'
-
-- name: Enable running login.sh at login
-  ansible.builtin.lineinfile:
-    path: "/etc/profile.d/hdev.sh"
-    regexp: '^sudo /opt/hdev/login/login.sh'
-    line: 'sudo /opt/hdev/login/login.sh'
-
 - name: Ensure config dir for hdev is present
   ansible.builtin.file:
     path: "{{ hdev_config_dir }}"
@@ -98,12 +82,6 @@
     owner: root
     group: root
     mode: '0700'
-
-- name: Export HDEV_CONFIG_DIR to environment variables
-  ansible.builtin.lineinfile:
-    path: "/etc/profile.d/hdev.sh"
-    regexp: '^export HDEV_CONFIG_DIR='
-    line: "export HDEV_CONFIG_DIR={{ hdev_config_dir }}"
 
 - name: Ensure BMC credentials are present
   ansible.builtin.copy:
@@ -116,3 +94,23 @@
     owner: root
     group: root
     mode: '0700'
+
+- name: Create startup script for interactive login shells
+  ansible.builtin.copy:
+    dest: "/etc/profile.d/hdev.sh"
+    content: |
+      # Only run for interactive shells
+      if [[ $- == *i* && -z $CLI_PATH ]]; then
+        export CLI_PATH=/opt/hdev/cli
+        export HDEV_CONFIG_DIR={{ hdev_config_dir }}
+        sudo /opt/hdev/login/login.sh
+      fi
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Add startup script to system bashrc for non-login shells
+  ansible.builtin.lineinfile:
+    path: /etc/bash.bashrc
+    line: 'source /etc/profile.d/hdev.sh'
+    state: present

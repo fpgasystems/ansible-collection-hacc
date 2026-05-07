@@ -1,15 +1,5 @@
 ---
 
-- name: Setup License servers environment variable
-  ansible.builtin.lineinfile:
-    path: "/etc/profile.d/vivado.sh"
-    regexp: '^export XILINXD_LICENSE_FILE='
-    line: "export XILINXD_LICENSE_FILE={{ vivado_license_servers | join(':') }}"
-    create: true
-    owner: root
-    group: root
-    mode: '0755'
-
 - name: Add vivado dir in modulefiles dir
   ansible.builtin.file:
     path: /usr/share/modules/modulefiles/vivado
@@ -29,9 +19,26 @@
   loop_control:
     loop_var: release
 
-- name: Manage vivado module loading based on number of installed releases
+- name: Create startup script for login-shells
+  ansible.builtin.copy:
+    dest: /etc/profile.d/vivado.sh
+    content: |
+      export XILINXD_LICENSE_FILE={{ vivado_license_servers | join(':') }}
+      {% if installed_releases | length == 1 %}
+      load_vivado() {
+        if ! type module >/dev/null 2>&1; then
+          source /etc/profile.d/modules.sh
+        fi
+        module load vivado/{{ (installed_releases | first).release }}
+      }
+      load_vivado
+      {% endif %}
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Set startup script to system bashrc for non-login shells
   ansible.builtin.lineinfile:
-    path: /etc/profile.d/vivado.sh
-    regexp: '^module load vivado'
-    line: "module load vivado/{{ (installed_releases | first).release }}"
-    state: "{{ 'present' if installed_releases | length == 1 else 'absent' }}"
+    path: /etc/bash.bashrc
+    line: 'source /etc/profile.d/vivado.sh'
+    state: present

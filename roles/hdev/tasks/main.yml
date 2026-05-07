@@ -66,3 +66,7 @@
       | selectattr('device_type', 'equalto', device_type)
       | first
     ).stat.exists | default(false)
+
+- name: Create device_acap_fpga_coyote file in cmdb
+  ansible.builtin.command:
+    cmd: "/opt/hdev/cli/common/get_devices_acap_fpga_coyote"

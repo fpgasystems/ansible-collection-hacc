@@ -131,13 +131,27 @@
 
 # POST INSTALL
 
-- name: Add XRT setup script to bash profile
-  ansible.builtin.lineinfile:
-    path: /etc/profile.d/xrt.sh
-    line: "source /opt/xilinx/xrt/setup.sh"
-    regexp: '^source .*/opt/xilinx/xrt/setup.sh'
-    create: true
+- name: Create startup script for interactive login shells
+  when: xrt_set_bash_environment_variables
+  ansible.builtin.copy:
+    dest: /etc/profile.d/xrt.sh
+    content: |
+      # Only run for interactive shells
+      if [[ $- == *i* ]]; then
+        [[ -z $XILINX_XRT || ":$PATH:" != *":$XILINX_XRT/bin:"* ]] && source /opt/xilinx/xrt/setup.sh > /dev/null
+      fi
     owner: root
     group: root
     mode: '0755'
+
+- name: Remove startup script
+  when: not xrt_set_bash_environment_variables
+  ansible.builtin.file:
+    path: /etc/profile.d/xrt.sh
+    state: absent
+
+- name: Set startup script to system bashrc for non-login shells
+  ansible.builtin.lineinfile:
+    path: /etc/bash.bashrc
+    line: 'source /etc/profile.d/xrt.sh'
     state: "{{ 'present' if xrt_set_bash_environment_variables else 'absent' }}"
