@@ -211,3 +211,28 @@ vivado_packages:
       - git
       - libncursesw5
       - libc6-dev-i386
+
+  '2022.1':
+    archive:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: Xilinx_Unified_2022.1_0420_0327
+        extention: .tar.gz
+        checksum_md5: 0bf810cf5eaa28a849ab52b9bfdd20a5
+    installer:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        bin: Xilinx_Unified_2022.1_0420_0327_Lin64.bin
+        checksum_md5: db5056feaaf271fe90ba54bae4768ed2
+    prerequisites:
+      - libc6-dev-i386
+      - net-tools
+      - graphviz
+      - make
+      - unzip
+      - g++
+      - libtinfo5
+      - xvfb
+      - git
+      - libncursesw5
+      - libc6-dev-i386
