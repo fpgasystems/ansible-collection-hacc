@@ -9,7 +9,7 @@ def find_installed_releases(base_path):
 
     xinstall_path = os.path.join(base_path, ".xinstall")
 
-    if not os.path.isfile(xinstall_path):
+    if not os.path.exists(xinstall_path):
         return vivado, vitis, err
 
     release_dirs = [
