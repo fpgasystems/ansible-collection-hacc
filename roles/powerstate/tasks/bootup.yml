@@ -1,0 +1,28 @@
+---
+
+- name: Ensure host is powered off
+  ansible.builtin.include_tasks:
+    file: "util/ensure_state.yml"
+  vars:
+    powerstate_to_ensure: "Off"
+    check_delay: 1
+    check_retries: 3
+
+- name: Turn on host
+  block:
+    - name: Bootup host
+      ansible.builtin.include_tasks:
+        file: "{{ powerstate_bmc_vendor }}/bootup.yml"
+
+  always:
+    - name: Ensure host is powered on
+      ansible.builtin.include_tasks:
+        file: "util/ensure_state.yml"
+      vars:
+        powerstate_to_ensure: "On"
+        check_delay: 10
+        check_retries: 30
+
+    - name: Ensure host is back online
+      ansible.builtin.import_tasks:
+        file: "util/check_if_online.yml"

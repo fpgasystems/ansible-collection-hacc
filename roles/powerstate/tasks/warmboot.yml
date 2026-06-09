@@ -1,0 +1,24 @@
+---
+
+- name: Ensure host is powered on
+  ansible.builtin.include_tasks:
+    file: "util/ensure_state.yml"
+  vars:
+    powerstate_to_ensure: "On"
+    check_delay: 1
+    check_retries: 3
+
+- name: Warm boot host
+  ansible.builtin.reboot:
+
+- name: Wait until host is powered on
+  ansible.builtin.include_tasks:
+    file: "util/ensure_state.yml"
+  vars:
+    powerstate_to_ensure: "On"
+    check_delay: 10
+    check_retries: 30
+
+- name: Ensure host is back online
+  ansible.builtin.import_tasks:
+    file: "check_if_online.yml"

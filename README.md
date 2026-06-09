@@ -13,10 +13,11 @@ This Ansible collection provides modules, roles, and plugins to manage FPGAs and
   - [`vivado`](roles/vivado) - Manages installation of Vivado and Vitis
   - [`aved`](roles/aved) - Alveo Versal Example Design for Versal V80 FPGAs
   - [`xrt`](roles/xrt) - Xilinx RunTime for Alveo FPGAs and Versal VCK5000
-  - [`rocm`](roles/rocm) - GPU runtime runtime for AMD GPUs
+  - [`rocm`](roles/rocm) - GPU runtime for AMD GPUs
   - [`hdev`](roles/hdev) - HACC Development custom wrapper tool for easy user interactions
   - [`flexnet`](roles/flexnet) - Docker container for Xilinx/AMD License server
   - [`deb_repo`](roles/deb_repo) - Docker container for hosting a custom package repository
+  - [`powerstate`](roles/powerstate) - BMC control for power on/off/coldboot
 
 ## Installation
 

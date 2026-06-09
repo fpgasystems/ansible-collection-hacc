@@ -12,10 +12,10 @@ Role Variables
 --------------
 
 ```yaml
-powerstate_command: "TurnOn"
+powerstate_command: "BootUp"
 ```
-The state of the system that you want to achieve. By default "TurnOn". Supported options:
-    -   `TurnOn`: Turn the system on
+The state of the system that you want to achieve. By default "BootUp". Supported options:
+    -   `BootUp`: Turn the system on
     -   `Shutdown`: Shutdown the system
     -   `WarmBoot`: A regular reboot
     -   `ColdBoot`: A reboot that fully shuts down first before starting up again. This resets FPGAs to their default fabric/shell.

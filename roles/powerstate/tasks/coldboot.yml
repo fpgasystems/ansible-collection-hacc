@@ -1,0 +1,29 @@
+---
+
+- name: Coldboot host
+  block:
+    - name: Shutdown host
+      ansible.builtin.include_tasks:
+        file: "shutdown.yml"
+
+    - name: Boot host
+      ansible.builtin.include_tasks:
+        file: "bootup.yml"
+  rescue:
+    - name: Force coldboot using RedFish API (IPMI/BMC/iDRAC)
+      ansible.builtin.include_tasks:
+        file: "{{powerstate_bmc_vendor }}/coldboot.yml"
+
+    - name: Wait until host is powered on
+      ansible.builtin.include_tasks:
+        file: "util/ensure_state.yml"
+      vars:
+        powerstate_to_ensure: "On"
+        check_delay: 10
+        check_retries: 30
+
+    - name: Ensure host is back online
+      ansible.builtin.import_tasks:
+        file: "util/check_if_online.yml"
+
+

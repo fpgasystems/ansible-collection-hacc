@@ -1,0 +1,35 @@
+---
+
+- name: Force cold boot Supermicro system
+  block:
+    - name: Cold boot
+      delegate_to: localhost
+      ansible.builtin.uri:
+        url: "https://{{ powerstate_bmc_url }}/redfish/v1/Systems/1/Actions/ComputerSystem.Reset"
+        method: POST
+        user: "{{ powerstate_bmc_username }}"
+        password: "{{ powerstate_bmc_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+        headers:
+          Accept: application/json
+          OData-Version: "4.0"
+        body_format: json
+        body:
+          ResetType: "PowerCycle"
+      register: redfish_system
+      failed_when: redfish_system.auth != 200
+  rescue:
+    - name: Force shutdown
+      ansible.builtin.include_tasks:
+        file: ./shutdown.yml
+
+    - name: Wait for 3 minutes
+      delegate_to: localhost
+      ansible.builtin.wait_for:
+        timeout: 180
+
+    - name: Bootup
+      ansible.builtin.include_tasks:
+        file: ./bootup.yml

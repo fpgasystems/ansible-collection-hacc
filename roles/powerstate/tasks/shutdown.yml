@@ -1,0 +1,40 @@
+---
+
+- name: Ensure host is powered on
+  ansible.builtin.include_tasks:
+    file: "util/ensure_state.yml"
+  vars:
+    powerstate_to_ensure: "On"
+    check_delay: 1
+    check_retries: 3
+
+- name: Shutdown host
+  block:
+    - name: Shutdown via OS (systemd)
+      community.general.shutdown:
+        msg: "Shutdown initiated by the powerstate role from Ansible"
+        delay: 5
+      become: true
+
+    - name: Ensure host is powered off
+      ansible.builtin.include_tasks:
+        file: "util/ensure_state.yml"
+      vars:
+        powerstate_to_ensure: "Off"
+        check_delay: 10
+        check_retries: 30
+
+  rescue:
+    - name: Force Shutdown using RedFish API (IPMI/BMC/iDRAC)
+      ansible.builtin.include_tasks:
+        file: "{{ powerstate_bmc_vendor }}/shutdown.yml"
+
+  always:
+    - name: Ensure host is powered off
+      ansible.builtin.include_tasks:
+        file: "util/ensure_state.yml"
+      vars:
+        powerstate_to_ensure: "Off"
+        check_delay: 10
+        check_retries: 30
+

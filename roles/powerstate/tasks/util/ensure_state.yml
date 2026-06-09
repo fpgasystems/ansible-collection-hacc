@@ -1,0 +1,27 @@
+---
+
+- name: Check user input
+  delegate_to: localhost
+  ansible.builtin.assert:
+    that:
+      - powerstate_to_ensure in ["On", "Off"]
+      - check_delay is regex("^[0-9]+$")
+      - check_retries is regex("^[0-9]+$")
+
+- name: "Ensure host is powered {{ powerstate_to_ensure }}"
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: "https://{{ powerstate_bmc_url }}/redfish/v1/Systems/{{ powerstate_redfish_systemid }}"
+    method: GET
+    user: "{{ powerstate_bmc_username }}"
+    password: "{{ powerstate_bmc_password }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    headers:
+      Accept: application/json
+      OData-Version: "4.0"
+  register: redfish_system
+  until: redfish_system.json.PowerState == {{ powerstate_to_ensure }}
+  retries: "{{ check_retries | int }}"
+  delay: "{{ check_delay | int }}"

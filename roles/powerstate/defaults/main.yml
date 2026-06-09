@@ -1,6 +1,6 @@
 ---
 
-powerstate_command: "TurnOn"
+powerstate_command: "BootUp"
 powerstate_bmc_vendor: ""
 powerstate_bmc_url: ""
 powerstate_bmc_username: ""
