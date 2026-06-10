@@ -22,6 +22,6 @@
       Accept: application/json
       OData-Version: "4.0"
   register: redfish_system
-  until: redfish_system.json.PowerState == {{ powerstate_to_ensure }}
+  until: redfish_system.json.PowerState == powerstate_to_ensure
   retries: "{{ check_retries | int }}"
   delay: "{{ check_delay | int }}"

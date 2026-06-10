@@ -19,7 +19,7 @@
         body:
           ResetType: "PowerCycle"
       register: redfish_system
-      failed_when: redfish_system.auth != 200
+      failed_when: redfish_system.status != 200
   rescue:
     - name: Force shutdown
       ansible.builtin.include_tasks:
