@@ -178,7 +178,7 @@
     {{ vivado_installer }} --nox11 --
     --batch Install
     --config /root/.Xilinx/{{ release }}/install_config.txt
-    --agree XilinxEULA,3rdPartyEULA"
+    --agree XilinxEULA,3rdPartyEULA
   vars:
     # wait up to 6 hours
     ansible_command_timout: 21600
