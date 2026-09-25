@@ -1,22 +1,22 @@
 ---
 
 # TODO: Make vendor agnostic
-#   - read system id from the credentials check and use that instead of powerstate_bmc_vendor
+#   - read system id from the credentials check and use that instead of powerstate_bmc_type
 #   - Use ansible.builtin.uri for sending commands instead of the dell and supermicro redfish modules
 
 - name: Check user input
   ansible.builtin.assert:
     that:
       - powerstate_command in ["BootUp", "Shutdown", "WarmBoot", "ColdBoot"]
-      - powerstate_bmc_vendor in ["Dell", "Supermicro"]
+      - powerstate_bmc_type in ["Dell", "Redfish"]
       - powerstate_bmc_url | length > 0
       - powerstate_bmc_username | length > 0
       - powerstate_bmc_password | length > 0
 
-- name: Set redfish system id based on vendor
+- name: Set redfish system id based on type
   ansible.builtin.set_fact:
     powerstate_redfish_systemid: "{{
-      'System.Embedded.1' if powerstate_bmc_vendor == 'Dell'
+      'System.Embedded.1' if powerstate_bmc_type == 'Dell'
       else '1'
     }}"
 

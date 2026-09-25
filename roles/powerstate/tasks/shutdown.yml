@@ -27,7 +27,7 @@
   rescue:
     - name: Force Shutdown using RedFish API (IPMI/BMC/iDRAC)
       ansible.builtin.include_tasks:
-        file: "{{ powerstate_bmc_vendor }}/shutdown.yml"
+        file: "{{ powerstate_bmc_type }}/shutdown.yml"
 
   always:
     - name: Ensure host is powered off

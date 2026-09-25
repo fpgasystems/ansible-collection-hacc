@@ -12,7 +12,7 @@
   rescue:
     - name: Force coldboot using RedFish API (IPMI/BMC/iDRAC)
       ansible.builtin.include_tasks:
-        file: "{{powerstate_bmc_vendor }}/coldboot.yml"
+        file: "{{ powerstate_bmc_type }}/coldboot.yml"
 
     - name: Wait until host is powered on
       ansible.builtin.include_tasks:

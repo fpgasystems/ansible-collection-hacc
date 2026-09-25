@@ -21,9 +21,9 @@ The state of the system that you want to achieve. By default "BootUp". Supported
     -   `ColdBoot`: A reboot that fully shuts down first before starting up again. This resets FPGAs to their default fabric/shell.
 
 ```yaml
-powerstate_bmc_vendor: ""
+powerstate_bmc_type: ""
 ```
-A captilized name indicating the vendor of the sever/BMC. Currently supported: `Dell` and `Supermicro`.
+A captilized name indicating the type of the BMC. Currently supported: `Dell` and `Redfish`.
 
 ```yaml
 powerstate_bmc_url: ""
@@ -47,7 +47,7 @@ Example Playbook
         - role: fpga_systems.hacc.powerstate
           vars:
             powerstate_command: "ColdBoot"
-            powerstate_bmc_vendor: "Dell"
+            powerstate_bmc_type: "Dell"
             powerstate_bmc_url: "http://bmc.example.com"
             powerstate_bmc_username: "{{ vault_bmc_username }}"
             powerstate_bmc_password: "{{ vault_bmc_password }}"

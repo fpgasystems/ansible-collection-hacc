@@ -12,7 +12,7 @@
   block:
     - name: Bootup host
       ansible.builtin.include_tasks:
-        file: "{{ powerstate_bmc_vendor }}/bootup.yml"
+        file: "{{ powerstate_bmc_type }}/bootup.yml"
 
   always:
     - name: Ensure host is powered on
