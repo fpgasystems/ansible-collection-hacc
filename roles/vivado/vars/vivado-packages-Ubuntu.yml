@@ -1,6 +1,35 @@
 ---
 
 vivado_packages:
+  '2026.1':
+    archive:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: FPGAs_AdaptiveSoCs_Unified_SDI_2026.1_0616_1700
+        extention: .tar
+        checksum_md5: b577835d4304f07e40292c51a4018482
+    prerequisites:
+      - libc6-dev-i386
+      - net-tools
+      - graphviz
+      - make
+      - unzip
+      - zip
+      - g++
+      - libtinfo5
+      - xvfb
+      - git
+      - libncurses5-dev
+      - libc6-dev-i386
+      - libnss3-dev
+      - libgdk-pixbuf2.0-dev
+      - libgtk-3-dev
+      - libxss-dev
+      - libasound2
+      - openssl
+      - fdisk
+      - libsecret-1-dev
+
   '2025.2':
     archive:
       base:
