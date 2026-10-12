@@ -9,6 +9,7 @@ services:
         ZIP_FILE: {{ flexnet_server_file }}
     image: 'flexnet-license-server'
     hostname: {{ flexnet_hostname }}
+    restart: unless-stopped
     # Let the docker container have full access to the network
     # namespace of the host, to let is seem as if it were running
     # direcly on the host
