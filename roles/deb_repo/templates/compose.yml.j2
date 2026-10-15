@@ -4,6 +4,7 @@ services:
   deb-repo:
     build: .
     image: 'local-deb-repo'
+    restart: unless-stopped
     ports:
       - '{{ deb_repo_server_port }}:80'
     volumes:
