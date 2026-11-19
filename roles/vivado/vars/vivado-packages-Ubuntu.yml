@@ -1,6 +1,15 @@
 ---
 
 vivado_packages:
+  '2026.2':
+    archive:
+      base:
+        url: https://www.xilinx.com/member/forms/download/xef.html?filename=
+        package: FPGAs_AdaptiveSoCs_Unified_SDI_2026.2_1109_1430
+        extention: .tar
+        checksum_md5: 13ce79164b4c850c55683d425d3e2f50
+    prerequisites: []
+
   '2026.1':
     archive:
       base:
