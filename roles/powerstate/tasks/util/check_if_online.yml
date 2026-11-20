@@ -16,8 +16,9 @@
             -o StrictHostKeyChecking=no
             {{ ssh_user }}@{{ inventory_hostname }} "echo ok"
       register: ssh_test
-      retries: 5
-      delay: 10
+      # Try for max 30mins
+      retries: 60
+      delay: 30
       until: ssh_test.rc == 0
       failed_when: ssh_test.rc != 0
       changed_when: false
