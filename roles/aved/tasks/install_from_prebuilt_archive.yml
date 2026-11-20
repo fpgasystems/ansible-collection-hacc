@@ -112,6 +112,7 @@
   register: lsmod_out
   changed_when: false
 
+# TODO: add ignore checks option
 - name: Fail if ami module is not loaded
   ansible.builtin.fail:
     msg: >-
