@@ -4,6 +4,12 @@
 # Parameters:
 #   - `vivado_release`:        Object containing install info: release, vivado_only, update_level (required)
 
+# Prerequisite python package for these tasks
+- name: Install pexpect
+  ansible.builtin.apt:
+    name: python3-pexpect
+    state: present
+
 # FACTS GATHERING
 #
 - name: "[{{ vivado_release.release }}] Load release options"
